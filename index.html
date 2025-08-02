@@ -24,23 +24,23 @@
       --accent-color: #03dac5;
       --error-color: #cf6679;
       --warning-color: #fbc02d;
-      --hero-bg: #0d0d0d;
-      --code-bg: #0a0a0a;
-      --code-border: rgba(138,180,248,0.3);
+      --hero-bg: #000000;
+      --code-bg: #050505;
+      --code-border: rgba(138,180,248,0.4);
     }
     [data-theme="light"] {
       --bg-color: #ffffff;
-      --surface-color: #e8e8e8;
-      --surface-hover: #d0d0d0;
+      --surface-color: #dcdcdc;
+      --surface-hover: #c5c5c5;
       --text-color: #1a1a1a;
       --text-secondary: #4a4a4a;
       --primary-color: #1a73e8;
       --accent-color: #018786;
       --error-color: #d93025;
       --warning-color: #fbbc04;
-      --hero-bg: #f0f4f8;
-      --code-bg: #e1e8f0;
-      --code-border: rgba(26,115,232,0.4);
+      --hero-bg: #e5ecf4;
+      --code-bg: #d5dfe8;
+      --code-border: rgba(26,115,232,0.5);
     }
     * {
       margin: 0;
@@ -68,8 +68,9 @@
       border-bottom: 1px solid rgba(0,0,0,0.1);
     }
     [data-theme="light"] header {
-      box-shadow: 0 2px 8px rgba(0,0,0,.15);
-      border-bottom: 1px solid rgba(0,0,0,0.15);
+      box-shadow: 0 2px 12px rgba(0,0,0,.2);
+      border-bottom: 1px solid rgba(0,0,0,0.2);
+      background: #f5f5f5;
     }
     .logo {
       font-size: 1.5rem;
@@ -77,6 +78,12 @@
       display: flex;
       align-items: center;
       gap: .5rem;
+      text-decoration: none;
+      color: var(--text-color);
+      transition: opacity 0.3s;
+    }
+    .logo:hover {
+      opacity: 0.8;
     }
     .logo .material-icons {
       font-size: 1.8rem;
@@ -190,19 +197,28 @@
     .btn-primary {
       background: var(--primary-color);
       color: var(--bg-color);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    [data-theme="light"] .btn-primary {
+      box-shadow: 0 3px 10px rgba(0,0,0,0.25);
     }
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(138,180,248,0.4);
+      box-shadow: 0 6px 16px rgba(138,180,248,0.5);
     }
     .btn-secondary {
       background: transparent;
       color: var(--primary-color);
       border: 2px solid var(--primary-color);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    [data-theme="light"] .btn-secondary {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
     .btn-secondary:hover {
       background: var(--primary-color);
       color: var(--bg-color);
+      box-shadow: 0 4px 12px rgba(138,180,248,0.4);
     }
 
     /* Sections */
@@ -216,6 +232,10 @@
       margin-bottom:1.5rem;
       color:var(--primary-color);
       text-align: center;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    [data-theme="light"] .section h2 {
+      text-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
     .section h3 {
       font-size:1.5rem;
@@ -239,8 +259,9 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     [data-theme="light"] .feature-card {
-      border: 1px solid rgba(0,0,0,0.15);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border: 1px solid rgba(0,0,0,0.2);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+      background: #f8f8f8;
     }
     .feature-card:hover {
       transform: translateY(-4px);
@@ -269,7 +290,7 @@
       margin: 2rem 0;
       overflow-x: auto;
       border: 1px solid var(--code-border);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     }
     .architecture-diagram pre {
       font-family: monospace;
@@ -286,7 +307,7 @@
       padding: 1.5rem;
       margin: 1rem 0;
       overflow-x: auto;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
     .code-block pre {
       margin: 0;
@@ -299,11 +320,12 @@
       padding: 0;
     }
     code {
-      background: rgba(138,180,248,0.1);
+      background: var(--code-bg);
       padding: 0.2rem 0.4rem;
       border-radius: 4px;
       font-family: 'Consolas', 'Monaco', monospace;
       font-size: 0.9em;
+      border: 1px solid rgba(0,0,0,0.1);
     }
 
     /* Security Section */
@@ -366,6 +388,11 @@
       text-align:center;
       padding:2rem;
       margin-top: 4rem;
+      border-top: 1px solid rgba(0,0,0,0.1);
+    }
+    [data-theme="light"] footer {
+      background: #f0f0f0;
+      border-top: 2px solid rgba(0,0,0,0.15);
     }
     .footer-content {
       max-width: 1200px;
@@ -415,10 +442,10 @@
 </head>
 <body>
   <header>
-    <div class="logo">
+    <a href="/" class="logo">
       <span class="material-icons">android</span>
       <span>ROMbsr</span>
-    </div>
+    </a>
     <nav>
       <a href="#overview">Overview</a>
       <a href="#features">Features</a>
