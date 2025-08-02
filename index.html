@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ROMbsr - Secure Android ROM Build & Sign Orchestrator with Hardware Security Module integration" />
+  <title>ROMbsr – Secure Android ROM Build & Sign Orchestrator</title>
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+  <!-- Styles -->
+  <style>
+    :root {
+      --bg-color: #121212;
+      --surface-color: #1e1e1e;
+      --surface-hover: #262626;
+      --text-color: #e0e0e0;
+      --text-secondary: #a0a0a0;
+      --primary-color: #8ab4f8;
+      --accent-color: #03dac5;
+      --error-color: #cf6679;
+      --warning-color: #fbc02d;
+    }
+    [data-theme="light"] {
+      --bg-color: #ffffff;
+      --surface-color: #f5f5f5;
+      --surface-hover: #e0e0e0;
+      --text-color: #202124;
+      --text-secondary: #5f6368;
+      --primary-color: #1a73e8;
+      --accent-color: #018786;
+      --error-color: #d93025;
+      --warning-color: #fbbc04;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Roboto Flex", "Roboto", sans-serif;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    header {
+      background-color: var(--surface-color);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0,0,0,.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .logo .material-icons {
+      font-size: 1.8rem;
+      color: var(--primary-color);
+    }
+    nav {
+      display: flex;
+      align-items: center;
+    }
+    nav a {
+      color: var(--text-color);
+      margin-left: 1.5rem;
+      text-decoration: none;
+      position: relative;
+      transition: color .3s;
+    }
+    nav a:hover {
+      color: var(--primary-color);
+    }
+    nav a::after {
+      content:"";
+      position:absolute;
+      width:0;
+      height:2px;
+      background:var(--primary-color);
+      bottom:-4px;
+      left:0;
+      transition: width .3s;
+    }
+    nav a:hover::after {
+      width: 100%;
+    }
+    .toggle-btn {
+      background:none;
+      border:none;
+      color:var(--text-color);
+      cursor:pointer;
+      font-size:1.8rem;
+      margin-left:1.5rem;
+      transition: color .3s;
+    }
+    .toggle-btn:hover {
+      color: var(--primary-color);
+    }
+
+    /* Hero */
+    .hero {
+      text-align:center;
+      padding:4rem 2rem;
+      background: linear-gradient(135deg, var(--surface-color) 0%, rgba(138,180,248,0.1) 100%);
+    }
+    .hero-grid {
+      display:flex;
+      justify-content:center;
+      gap:4rem;
+      flex-wrap:wrap;
+      margin-bottom: 2rem;
+    }
+    .hero-item {
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+    }
+    .hero-item .material-icons {
+      font-size:6rem;
+      color:var(--primary-color);
+      margin-bottom: .5rem;
+    }
+    .hero-label {
+      font-size:2rem;
+      font-weight:700;
+      letter-spacing:.05em;
+    }
+    .hero h1 {
+      font-size: 2.5rem;
+      margin: 2rem 0 1rem;
+      background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .tagline {
+      font-size:1.2rem;
+      opacity:.9;
+      max-width: 800px;
+      margin: 0 auto 2rem;
+      color: var(--text-secondary);
+    }
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 0.8rem 2rem;
+      border-radius: 24px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all .3s;
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .btn-primary {
+      background: var(--primary-color);
+      color: var(--bg-color);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(138,180,248,0.4);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--primary-color);
+      border: 2px solid var(--primary-color);
+    }
+    .btn-secondary:hover {
+      background: var(--primary-color);
+      color: var(--bg-color);
+    }
+
+    /* Sections */
+    .section {
+      max-width:1200px;
+      margin:4rem auto;
+      padding:0 2rem;
+    }
+    .section h2 {
+      font-size:2.5rem;
+      margin-bottom:1.5rem;
+      color:var(--primary-color);
+      text-align: center;
+    }
+    .section h3 {
+      font-size:1.5rem;
+      margin: 2rem 0 1rem;
+      color:var(--text-color);
+    }
+
+    /* Feature Grid */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    .feature-card {
+      background: var(--surface-color);
+      padding: 2rem;
+      border-radius: 12px;
+      transition: all .3s;
+      border: 1px solid transparent;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      border-color: var(--primary-color);
+    }
+    .feature-card .material-icons {
+      font-size: 3rem;
+      color: var(--accent-color);
+      margin-bottom: 1rem;
+    }
+    .feature-card h4 {
+      font-size: 1.3rem;
+      margin-bottom: .5rem;
+    }
+    .feature-card p {
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Architecture Diagram */
+    .architecture-diagram {
+      background: var(--surface-color);
+      padding: 2rem;
+      border-radius: 12px;
+      margin: 2rem 0;
+      overflow-x: auto;
+    }
+    .architecture-diagram pre {
+      font-family: monospace;
+      font-size: .9rem;
+      line-height: 1.4;
+      color: var(--text-secondary);
+    }
+
+    /* Code Block */
+    .code-block {
+      background: var(--surface-color);
+      border: 1px solid rgba(138,180,248,0.2);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      overflow-x: auto;
+    }
+    .code-block pre {
+      margin: 0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: .9rem;
+      color: var(--text-color);
+    }
+    .code-block code {
+      background: none;
+      padding: 0;
+    }
+    code {
+      background: rgba(138,180,248,0.1);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.9em;
+    }
+
+    /* Security Section */
+    .security-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .security-item {
+      display: flex;
+      align-items: start;
+      gap: 1rem;
+    }
+    .security-item .material-icons {
+      color: var(--accent-color);
+      font-size: 1.8rem;
+      flex-shrink: 0;
+    }
+
+    /* Quick Start Steps */
+    .steps {
+      counter-reset: step-counter;
+      margin-top: 2rem;
+    }
+    .step {
+      position: relative;
+      padding-left: 3rem;
+      margin-bottom: 2rem;
+      counter-increment: step-counter;
+    }
+    .step::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2rem;
+      height: 2rem;
+      background: var(--primary-color);
+      color: var(--bg-color);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    /* Lists */
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    li {
+      margin-bottom: .5rem;
+    }
+
+    /* Footer */
+    footer {
+      background:var(--surface-color);
+      text-align:center;
+      padding:2rem;
+      margin-top: 4rem;
+    }
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 1rem;
+    }
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color .3s;
+    }
+    .footer-links a:hover {
+      color: var(--primary-color);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      nav a {
+        margin: 0 .75rem;
+      }
+      .hero h1 {
+        font-size: 2rem;
+      }
+      .hero-grid {
+        gap: 2rem;
+      }
+      .hero-item .material-icons {
+        font-size: 4rem;
+      }
+      .hero-label {
+        font-size: 1.5rem;
+      }
+      .section h2 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <span class="material-icons">security</span>
+      <span>ROMbsr</span>
+    </div>
+    <nav>
+      <a href="#overview">Overview</a>
+      <a href="#features">Features</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#security">Security</a>
+      <a href="#quickstart">Quick Start</a>
+      <a href="https://github.com/xoraxiom/ROMbsr">GitHub</a>
+      <button class="toggle-btn" id="themeToggle" aria-label="Toggle dark/light mode">
+        <span class="material-icons" id="themeIcon">dark_mode</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="hero-item">
+        <span class="material-icons" title="Build">build_circle</span>
+        <span class="hero-label">BUILD</span>
+      </div>
+      <div class="hero-item">
+        <span class="material-icons" title="Sign">vpn_key</span>
+        <span class="hero-label">SIGN</span>
+      </div>
+      <div class="hero-item">
+        <span class="material-icons" title="Release">publish</span>
+        <span class="hero-label">RELEASE</span>
+      </div>
+    </div>
+    <h1>Secure Android ROM Build & Sign Orchestrator</h1>
+    <p class="tagline">
+      Security-focused orchestration system for building AOSP-based ROMs with Hardware Security Module integration.
+      Complete separation between build and signing operations ensures signing keys never exist on build infrastructure.
+    </p>
+    <div class="hero-buttons">
+      <a href="#quickstart" class="btn btn-primary">
+        <span class="material-icons">rocket_launch</span>
+        Get Started
+      </a>
+      <a href="https://github.com/xoraxiom/ROMbsr" class="btn btn-secondary">
+        <span class="material-icons">code</span>
+        View on GitHub
+      </a>
+    </div>
+  </section>
+
+  <!-- Overview -->
+  <section id="overview" class="section">
+    <h2>Why ROMbsr?</h2>
+    <p style="text-align: center; font-size: 1.1rem; color: var(--text-secondary); max-width: 800px; margin: 0 auto 3rem;">
+      Traditional Android ROM building requires signing keys on build servers, creating significant security risks.
+      ROMbsr addresses this critical security challenge by keeping signing keys completely isolated in hardware security modules.
+    </p>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="material-icons">shield</span>
+        <h4>Zero-Trust Security</h4>
+        <p>Signing keys never exist on build infrastructure. Complete isolation between build and signing environments ensures your keys remain secure even if build servers are compromised.</p>
+      </div>
+      <div class="feature-card">
+        <span class="material-icons">hub</span>
+        <h4>GitOps Integration</h4>
+        <p>All signing operations flow through a Git-based queue with cryptographic signatures, providing complete auditability and traceability for every signed artifact.</p>
+      </div>
+      <div class="feature-card">
+        <span class="material-icons">autorenew</span>
+        <h4>Resumable Builds</h4>
+        <p>State machine architecture with checkpoint-based recovery means builds can resume exactly where they left off after interruptions, saving hours of compute time.</p>
+      </div>
+      <div class="feature-card">
+        <span class="material-icons">cloud</span>
+        <h4>Production Ready</h4>
+        <p>Designed for containerized and bare-metal deployments with comprehensive monitoring, metrics, and systemd service integration. Production-ready for enterprise environments.</p>
+      </div>
+      <div class="feature-card">
+        <span class="material-icons">devices</span>
+        <h4>Multi-ROM Support</h4>
+        <p>Native support for GrapheneOS (Pixel devices) and CalyxOS (Pixel + Fairphone/SHIFT) with modular architecture. Build multiple device targets with shared infrastructure.</p>
+      </div>
+      <div class="feature-card">
+        <span class="material-icons">psychology</span>
+        <h4>DevSecOps Friendly</h4>
+        <p>Single unified command-line interface with automatic environment detection. Clear logging, comprehensive documentation, and intuitive workflows for DevSecOps teams.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture -->
+  <section id="architecture" class="section">
+    <h2>Architecture</h2>
+    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem;">
+      ROMbsr implements a security-focused architecture with complete separation between build and signing operations
+    </p>
+
+    <div class="architecture-diagram">
+      <pre>
+┌─────────────────────────────────────────────────────────────────────────┐
+│                            Build Environment                            │
+│  ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐     │
+│  │ Build           │    │ State            │    │ Mock            │     │
+│  │ Orchestrator    ├────┤ Management       ├────┤ PKCS#11         │     │
+│  └────────┬────────┘    └──────────────────┘    └─────────────────┘     │
+│           │                                                             │
+│           │ Generates                                                   │
+│           ▼                                                             │
+│  ┌─────────────────┐                                                    │
+│  │ Signing         │                                                    │
+│  │ Requests        │                                                    │
+│  └────────┬────────┘                                                    │
+└───────────┼─────────────────────────────────────────────────────────────┘
+            │
+            │ GitOps Queue
+            ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          Signing Environment                            │
+│  ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐     │
+│  │ Sign            │    │ HSM              │    │ Response        │     │
+│  │ Orchestrator    ├────┤ Processor        ├────┤ PKCS#11         │     │
+│  └────────┬────────┘    └────────┬─────────┘    └─────────────────┘     │
+│           │                       │                                     │
+│           │                       │                                     │
+│           ▼                       ▼                                     │
+│  ┌─────────────────┐    ┌──────────────────┐                            │
+│  │ Signed          │    │ YubiHSM2         │                            │
+│  │ Artifacts       │    │ Hardware         │                            │
+│  └─────────────────┘    └──────────────────┘                            │
+└─────────────────────────────────────────────────────────────────────────┘
+      </pre>
+    </div>
+
+    <h3>Component Overview</h3>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>Build Orchestrator</h4>
+        <p>Manages complete build lifecycle through 9 stages: environment setup, source sync, vendor extraction, build configuration, compilation, mock signing, request generation, queue submission, and signing wait.</p>
+      </div>
+      <div class="feature-card">
+        <h4>Sign Orchestrator</h4>
+        <p>Processes signing requests in secure environment: polls GitOps queue continuously, interfaces with HSM for cryptographic operations, generates signed responses, supports multi-stage signing.</p>
+      </div>
+      <div class="feature-card">
+        <h4>State Management</h4>
+        <p>Checkpoint-based system enabling builds to resume from any stage. JSON state files with transaction support, automatic checkpoint creation, and comprehensive failure recovery.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Security -->
+  <section id="security" class="section">
+    <h2>Enterprise-Grade Security</h2>
+
+    <div class="security-grid">
+      <div class="security-item">
+        <span class="material-icons">lock</span>
+        <div>
+          <strong>HSM Integration</strong>
+          <p>Native YubiHSM2 support with PKCS#11 abstraction for other HSMs</p>
+        </div>
+      </div>
+      <div class="security-item">
+        <span class="material-icons">domain</span>
+        <div>
+          <strong>Two-Level Authentication</strong>
+          <p>Authentication keys control access (admin, automation, backup), signing keys never leave HSM in plaintext</p>
+        </div>
+      </div>
+      <div class="security-item">
+        <span class="material-icons">verified_user</span>
+        <div>
+          <strong>Cryptographic Signatures</strong>
+          <p>Every signing operation cryptographically signed and verified</p>
+        </div>
+      </div>
+      <div class="security-item">
+        <span class="material-icons">history</span>
+        <div>
+          <strong>Complete Audit Trail</strong>
+          <p>Git-based queue provides immutable history of all operations</p>
+        </div>
+      </div>
+      <div class="security-item">
+        <span class="material-icons">vpn_key</span>
+        <div>
+          <strong>Comprehensive HSM Commands</strong>
+          <p>Full suite: provision, reset, list, status, test, import, export, auth management</p>
+        </div>
+      </div>
+      <div class="security-item">
+        <span class="material-icons">policy</span>
+        <div>
+          <strong>Role-Based Configuration</strong>
+          <p>Automatic role detection: build.conf for build nodes, sign.conf for signing nodes</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Security Architecture</h3>
+    <p>ROMbsr implements defense-in-depth with multiple security layers:</p>
+    <ul>
+      <li><strong>Physical Security:</strong> HSM requires physical presence for certain operations</li>
+      <li><strong>Network Isolation:</strong> Build and sign environments on separate networks</li>
+      <li><strong>Cryptographic Verification:</strong> All artifacts verified before and after signing</li>
+      <li><strong>Immutable Audit Log:</strong> Git history provides tamper-evident logging</li>
+    </ul>
+  </section>
+
+  <!-- Quick Start -->
+  <section id="quickstart" class="section">
+    <h2>Quick Start Guide</h2>
+    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem;">
+      Get up and running with ROMbsr in development mode in minutes
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <h4>Clone and Initialize</h4>
+        <div class="code-block">
+          <pre><code>git clone https://github.com/xoraxiom/ROMbsr.git
+cd rombsr
+touch .rombsr-root  # Enable development mode
+make all            # Build PKCS#11 libraries</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Configure Environment</h4>
+        <div class="code-block">
+          <pre><code>bin/rombsr init
+# Creates configuration templates and directory structure
+# Edit config/common.conf for your environment</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Run Mock Build</h4>
+        <div class="code-block">
+          <pre><code># Dry run to verify configuration
+bin/rombsr build grapheneos shiba --dry-run
+
+# Start actual build (4-6 hours, ~400GB space)
+bin/rombsr build grapheneos shiba</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Process Signing (Production)</h4>
+        <div class="code-block">
+          <pre><code># On signing node with HSM attached
+bin/rombsr sign --continuous
+
+# Or process once
+bin/rombsr sign --once</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <h3>System Requirements</h3>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>Development</h4>
+        <ul>
+          <li>Ubuntu 20.04+ or Debian 11+</li>
+          <li>16GB RAM minimum</li>
+          <li>500GB free disk space</li>
+          <li>8+ CPU cores</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <h4>Production Build</h4>
+        <ul>
+          <li>Ubuntu 22.04 LTS recommended</li>
+          <li>32GB+ RAM</li>
+          <li>1TB+ NVMe SSD</li>
+          <li>16+ CPU cores</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <h4>Signing Node</h4>
+        <ul>
+          <li>YubiHSM2 hardware</li>
+          <li>Dedicated server</li>
+          <li>Physical security</li>
+          <li>Network isolation</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-links">
+        <a href="https://github.com/xoraxiom/ROMbsr">GitHub</a>
+        <a href="https://github.com/xoraxiom/ROMbsr/blob/main/README.md">Documentation</a>
+        <a href="https://github.com/xoraxiom/ROMbsr/issues">Issues</a>
+        <a href="https://github.com/xoraxiom/ROMbsr/blob/main/LICENSE">License</a>
+      </div>
+      <p>&copy; 2025 ROMbsr Project. Released under the Apache 2.0 License.</p>
+    </div>
+  </footer>
+
+  <!-- Theme Toggle Script -->
+  <script>
+    (function () {
+      const toggle = document.getElementById('themeToggle');
+      const icon = document.getElementById('themeIcon');
+      const storedTheme = localStorage.getItem('theme');
+      if (storedTheme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        icon.textContent = 'light_mode';
+      }
+      toggle.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        if (current === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'light');
+          localStorage.setItem('theme', 'light');
+          icon.textContent = 'light_mode';
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          localStorage.setItem('theme', 'dark');
+          icon.textContent = 'dark_mode';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
