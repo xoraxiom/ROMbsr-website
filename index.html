@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="ROMbsr - Secure Android ROM Build & Sign Orchestrator with Hardware Security Module integration" />
-  <title>ROMbsr – Secure Android ROM Build & Sign Orchestrator</title>
+  <meta name="description" content="ROMbsr - Secure Android ROM Build, Sign, & Release Orchestrator with Hardware Security Module integration" />
+  <title>ROMbsr – Secure Android ROM Build, Sign, & Release Orchestrator</title>
   <link rel="icon" href="https://fonts.gstatic.com/s/i/materialicons/android/v12/24px.svg" type="image/svg+xml">
 
   <!-- Fonts & Icons -->
@@ -475,10 +475,10 @@
         <span class="hero-label">RELEASE</span>
       </div>
     </div>
-    <h1>Secure Android ROM Build & Sign Orchestrator</h1>
+    <h1>Secure Android ROM Build, Sign, & Release Orchestrator</h1>
     <p class="tagline">
-      Security-focused orchestration system for building AOSP-based ROMs with Hardware Security Module integration.
-      Complete separation between build and signing operations ensures signing keys never exist on build infrastructure.
+      Security-focused orchestration system for building, signing, and releasing AOSP-based ROMs with Hardware Security Module integration.
+      Complete separation between build, signing, and release operations ensures signing keys never exist on build infrastructure.
     </p>
     <div class="hero-buttons">
       <a href="#quickstart" class="btn btn-primary">
@@ -504,12 +504,12 @@
       <div class="feature-card">
         <span class="material-icons">shield</span>
         <h4>Zero-Trust Security</h4>
-        <p>Signing keys never exist on build infrastructure. Complete isolation between build and signing environments ensures your keys remain secure even if build servers are compromised.</p>
+        <p>Signing keys never exist on build infrastructure. Complete isolation between build, signing, and release environments ensures your keys remain secure even if build servers are compromised.</p>
       </div>
       <div class="feature-card">
         <span class="material-icons">hub</span>
         <h4>GitOps Integration</h4>
-        <p>All signing operations flow through a Git-based queue with cryptographic signatures, providing complete auditability and traceability for every signed artifact.</p>
+        <p>All build, signing, and release operations flow through a Git-based queue with cryptographic signatures, providing complete auditability and traceability for every artifact.</p>
       </div>
       <div class="feature-card">
         <span class="material-icons">autorenew</span>
@@ -538,7 +538,7 @@
   <section id="architecture" class="section">
     <h2>Architecture</h2>
     <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem;">
-      ROMbsr implements a security-focused architecture with complete separation between build and signing operations
+      ROMbsr implements a security-focused architecture with complete separation between build, signing, and release operations
     </p>
 
     <div class="architecture-diagram">
@@ -647,7 +647,7 @@
     <p>ROMbsr implements defense-in-depth with multiple security layers:</p>
     <ul>
       <li><strong>Physical Security:</strong> HSM requires physical presence for certain operations</li>
-      <li><strong>Network Isolation:</strong> Build and sign environments on separate networks</li>
+      <li><strong>Network Isolation:</strong> Build, sign, and release environments on separate networks</li>
       <li><strong>Cryptographic Verification:</strong> All artifacts verified before and after signing</li>
       <li><strong>Immutable Audit Log:</strong> Git history provides tamper-evident logging</li>
     </ul>
