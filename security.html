@@ -54,6 +54,8 @@
       background-color: var(--bg-color);
       color: var(--text-color);
       line-height: 1.6;
+      overflow-x: hidden;
+      width: 100%;
     }
 
     /* Header */
@@ -68,6 +70,8 @@
       top: 0;
       z-index: 100;
       border-bottom: 1px solid rgba(0,0,0,0.1);
+      width: 100%;
+      overflow: hidden;
     }
     [data-theme="light"] header {
       box-shadow: 0 2px 12px rgba(0,0,0,.2);
@@ -94,6 +98,8 @@
     nav {
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
     }
     nav a {
       color: var(--text-color);
@@ -294,6 +300,8 @@
       padding:2rem;
       margin-top: 4rem;
       border-top: 1px solid rgba(0,0,0,0.1);
+      width: 100%;
+      overflow: hidden;
     }
 
     /* Responsive */
@@ -301,9 +309,50 @@
       header {
         flex-direction: column;
         gap: 1rem;
+        padding: 1rem;
+      }
+      nav {
+        width: 100%;
+        justify-content: center;
+        gap: 0.5rem;
       }
       nav a {
-        margin: 0 .75rem;
+        margin: 0 0.5rem;
+        font-size: 0.9rem;
+      }
+      .toggle-btn {
+        margin-left: 0.5rem;
+        padding: 0.5rem;
+        font-size: 1.5rem;
+      }
+      .hero {
+        padding: 2rem 1rem;
+      }
+      .hero h1 {
+        font-size: 1.8rem;
+      }
+      .hero p {
+        font-size: 1rem;
+        padding: 0 1rem;
+      }
+      .section {
+        padding: 0 1rem;
+      }
+      .section h2 {
+        font-size: 1.8rem;
+      }
+      .code-block {
+        padding: 1rem;
+      }
+      .feature-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+      .security-grid {
+        grid-template-columns: 1fr;
+      }
+      footer {
+        padding: 1.5rem 1rem;
       }
     }
   </style>
