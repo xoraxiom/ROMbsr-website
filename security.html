@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ROMbsr Security Model - HSM integration, zero-trust architecture, and cryptographic verification for Android ROM signing" />
+  <title>ROMbsr Security - Zero-Trust ROM Signing</title>
+  <link rel="icon" href="https://fonts.gstatic.com/s/i/materialicons/android/v12/24px.svg" type="image/svg+xml">
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+  <!-- Shared Styles -->
+  <style>
+    :root {
+      --bg-color: #121212;
+      --surface-color: #1e1e1e;
+      --surface-hover: #262626;
+      --text-color: #e0e0e0;
+      --text-secondary: #a0a0a0;
+      --primary-color: #8ab4f8;
+      --accent-color: #03dac5;
+      --error-color: #cf6679;
+      --warning-color: #fbc02d;
+      --success-color: #81c784;
+      --hero-bg: #000000;
+      --code-bg: #050505;
+      --code-border: rgba(138,180,248,0.4);
+    }
+    [data-theme="light"] {
+      --bg-color: #ffffff;
+      --surface-color: #dcdcdc;
+      --surface-hover: #c5c5c5;
+      --text-color: #1a1a1a;
+      --text-secondary: #4a4a4a;
+      --primary-color: #1a73e8;
+      --accent-color: #018786;
+      --error-color: #d93025;
+      --warning-color: #fbbc04;
+      --success-color: #34a853;
+      --hero-bg: #e5ecf4;
+      --code-bg: #d5dfe8;
+      --code-border: rgba(26,115,232,0.5);
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Roboto Flex", "Roboto", sans-serif;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    header {
+      background-color: var(--surface-color);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0,0,0,.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+    [data-theme="light"] header {
+      box-shadow: 0 2px 12px rgba(0,0,0,.2);
+      border-bottom: 1px solid rgba(0,0,0,0.2);
+      background: #f5f5f5;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      text-decoration: none;
+      color: var(--text-color);
+      transition: opacity 0.3s;
+    }
+    .logo:hover {
+      opacity: 0.8;
+    }
+    .logo .material-icons {
+      font-size: 1.8rem;
+      color: var(--primary-color);
+    }
+    nav {
+      display: flex;
+      align-items: center;
+    }
+    nav a {
+      color: var(--text-color);
+      margin-left: 1.5rem;
+      text-decoration: none;
+      position: relative;
+      transition: color .3s;
+    }
+    nav a:hover {
+      color: var(--primary-color);
+    }
+    nav a.active {
+      color: var(--primary-color);
+    }
+    .toggle-btn {
+      background:none;
+      border:none;
+      color:var(--text-color);
+      cursor:pointer;
+      font-size:1.8rem;
+      margin-left:1.5rem;
+      transition: color .3s;
+    }
+    .toggle-btn:hover {
+      color: var(--primary-color);
+    }
+
+    /* Hero */
+    .hero {
+      background: var(--hero-bg);
+      padding: 3rem 2rem;
+      text-align: center;
+      border-bottom: 1px solid var(--surface-color);
+    }
+    .hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      color: var(--text-secondary);
+      max-width: 800px;
+      margin: 0 auto;
+      font-size: 1.1rem;
+    }
+
+    /* Sections */
+    .section {
+      max-width:1200px;
+      margin:3rem auto;
+      padding:0 2rem;
+    }
+    .section h2 {
+      font-size:2rem;
+      margin-bottom:1.5rem;
+      color:var(--primary-color);
+    }
+    .section h3 {
+      font-size:1.5rem;
+      margin: 2rem 0 1rem;
+      color:var(--text-color);
+    }
+
+    /* Security Grid */
+    .security-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .security-item {
+      display: flex;
+      align-items: start;
+      gap: 1rem;
+    }
+    .security-item .material-icons {
+      color: var(--accent-color);
+      font-size: 1.8rem;
+      flex-shrink: 0;
+    }
+
+    /* Feature Cards */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    .feature-card {
+      background: var(--surface-color);
+      padding: 2rem;
+      border-radius: 12px;
+      transition: all .3s;
+      border: 1px solid rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    [data-theme="light"] .feature-card {
+      border: 1px solid rgba(0,0,0,0.2);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+      background: #f8f8f8;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      border-color: var(--primary-color);
+    }
+    .feature-card h4 {
+      font-size: 1.3rem;
+      margin-bottom: .5rem;
+      color: var(--primary-color);
+    }
+
+    /* Code Blocks */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      overflow-x: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .code-block pre {
+      margin: 0;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: .9rem;
+      color: var(--text-color);
+    }
+    .code-block pre code {
+      font-family: inherit;
+      background: none;
+      padding: 0;
+    }
+
+    /* Threat Model */
+    .threat-card {
+      background: var(--surface-color);
+      border-left: 4px solid var(--error-color);
+      padding: 1.5rem;
+      margin: 1rem 0;
+      border-radius: 8px;
+    }
+    .threat-card h4 {
+      color: var(--error-color);
+      margin-bottom: 0.5rem;
+    }
+    .mitigation {
+      background: rgba(3,218,197,0.1);
+      padding: 1rem;
+      margin-top: 1rem;
+      border-radius: 4px;
+      border-left: 4px solid var(--accent-color);
+    }
+
+    /* Security Levels */
+    .security-level {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 16px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .level-critical {
+      background: rgba(207,102,121,0.2);
+      color: var(--error-color);
+    }
+    .level-high {
+      background: rgba(251,192,45,0.2);
+      color: var(--warning-color);
+    }
+    .level-medium {
+      background: rgba(138,180,248,0.2);
+      color: var(--primary-color);
+    }
+    .level-secure {
+      background: rgba(3,218,197,0.2);
+      color: var(--accent-color);
+    }
+
+    /* Lists */
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    li {
+      margin-bottom: .5rem;
+    }
+
+    /* Footer */
+    footer {
+      background:var(--surface-color);
+      text-align:center;
+      padding:2rem;
+      margin-top: 4rem;
+      border-top: 1px solid rgba(0,0,0,0.1);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      nav a {
+        margin: 0 .75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">
+      <span class="material-icons">android</span>
+      <span>ROMbsr</span>
+    </a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/architecture.html">Architecture</a>
+      <a href="/security.html" class="active">Security</a>
+      <a href="/deployment.html">Deployment</a>
+      <a href="https://github.com/xoraxiom/ROMbsr">GitHub</a>
+      <button class="toggle-btn" id="themeToggle" aria-label="Toggle dark/light mode">
+        <span class="material-icons" id="themeIcon">dark_mode</span>
+      </button>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1>ROMbsr Security Model</h1>
+    <p>Hardware-backed key protection, zero-trust architecture, and comprehensive audit trails that exceed financial industry standards for Android ROM signing</p>
+  </section>
+
+  <section class="section">
+    <h2>Threat Model & Mitigations</h2>
+    <p>ROMbsr is designed to protect against sophisticated adversaries who may have compromised your build infrastructure. Here's how we address each threat:</p>
+
+    <div class="threat-card">
+      <h4>Threat 1: Compromised Build Server</h4>
+      <p><strong>Scenario:</strong> Attacker gains root access to build servers through supply chain attack or vulnerability.</p>
+      <p><strong>Traditional Risk:</strong> <span class="security-level level-critical">CRITICAL</span> - Signing keys on filesystem are immediately compromised.</p>
+      <div class="mitigation">
+        <strong>ROMbsr Mitigation:</strong> <span class="security-level level-secure">SECURE</span>
+        <ul>
+          <li>Signing keys never exist on build servers - they're physically isolated in HSM</li>
+          <li>Build servers can only generate signing requests, not signatures</li>
+          <li>Even with full root access, attacker cannot extract signing keys</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="threat-card">
+      <h4>Threat 2: Malicious ROM Injection</h4>
+      <p><strong>Scenario:</strong> Attacker attempts to sign and distribute a backdoored ROM version.</p>
+      <p><strong>Traditional Risk:</strong> <span class="security-level level-high">HIGH</span> - If build server compromised, attacker can sign arbitrary ROMs.</p>
+      <div class="mitigation">
+        <strong>ROMbsr Mitigation:</strong> <span class="security-level level-secure">SECURE</span>
+        <ul>
+          <li>All signing requests include cryptographic hashes of artifacts</li>
+          <li>GitOps queue provides immutable audit trail of all signing operations</li>
+          <li>Signing policies can enforce additional verification before HSM access</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="threat-card">
+      <h4>Threat 3: Insider Threat</h4>
+      <p><strong>Scenario:</strong> Malicious insider with legitimate access attempts to exfiltrate keys or sign unauthorized builds.</p>
+      <p><strong>Traditional Risk:</strong> <span class="security-level level-high">HIGH</span> - Single person with server access can compromise everything.</p>
+      <div class="mitigation">
+        <strong>ROMbsr Mitigation:</strong> <span class="security-level level-secure">SECURE</span>
+        <ul>
+          <li>Multi-level HSM authentication separates admin, signing, and backup roles</li>
+          <li>All operations logged with cryptographic proof - cannot be altered</li>
+          <li>Dual control can be enforced for critical operations</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="threat-card">
+      <h4>Threat 4: Supply Chain Attack</h4>
+      <p><strong>Scenario:</strong> Compromised dependency or build tool attempts to steal keys during build process.</p>
+      <p><strong>Traditional Risk:</strong> <span class="security-level level-critical">CRITICAL</span> - Build tools have access to signing keys.</p>
+      <div class="mitigation">
+        <strong>ROMbsr Mitigation:</strong> <span class="security-level level-secure">SECURE</span>
+        <ul>
+          <li>Build environment uses request capture - no real keys present</li>
+          <li>Signing happens in isolated environment with minimal dependencies</li>
+          <li>HSM operations use verified, minimal PKCS#11 interface only</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Request Capture: Production Security Feature</h2>
+    <p>A common misconception is that ROMbsr's request capture (libmock_pkcs11.so) is a development or testing feature. 
+    In reality, it's a critical production security component that enables the entire zero-trust architecture.</p>
+
+    <h3>Why Request Capture is Essential for Security</h3>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>Enables Key Isolation</h4>
+        <p>By capturing signing requests instead of performing signing, build infrastructure never needs access to private keys. 
+        This is not a workaround - it's the fundamental security design.</p>
+      </div>
+      <div class="feature-card">
+        <h4>Prevents Key Exfiltration</h4>
+        <p>Even if attackers compromise the build server and modify libmock_pkcs11.so, they cannot extract keys that were never present. 
+        The worst they can do is corrupt the signing requests.</p>
+      </div>
+      <div class="feature-card">
+        <h4>Enables Distributed Builds</h4>
+        <p>Multiple build nodes can operate in parallel without any access to signing keys. 
+        All captured requests are processed centrally by the secure signing infrastructure.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-security">
+      <strong>Security Architecture:</strong> Request capture is not "mock" signing - it's deferred signing. 
+      The build process captures what needs to be signed, and the signing process applies real signatures later. 
+      This separation is what makes ROMbsr fundamentally more secure than traditional approaches.
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Hardware Security Module (HSM) Integration</h2>
+    
+    <h3>YubiHSM2 Security Features</h3>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>Hardware Key Protection</h4>
+        <p>Keys are generated inside the HSM and never exist in plaintext outside. Physical tampering triggers key deletion. FIPS 140-2 Level 2 certified hardware security.</p>
+      </div>
+      <div class="feature-card">
+        <h4>Cryptographic Attestation</h4>
+        <p>HSM can prove its identity and that keys were generated internally. Prevents key substitution attacks. Verifiable chain of trust from hardware to signature.</p>
+      </div>
+      <div class="feature-card">
+        <h4>Role-Based Access Control</h4>
+        <p>16 authentication keys with granular permissions. Separate roles for admin, signing, backup, and audit. Capabilities enforced by hardware, not software.</p>
+      </div>
+    </div>
+
+    <h3>HSM Authentication Architecture</h3>
+    <div class="code-block">
+      <pre><code># Default YubiHSM2 Authentication Keys
+Key ID 1: Factory Default (password: "password")
+  - Used only for initial provisioning
+  - Should be deleted after setup
+
+Key ID 2: Administrator
+  - Can create/delete objects
+  - Can manage other auth keys
+  - Used for HSM provisioning
+
+Key ID 3: Automation/Signing (ROMbsr default)
+  - Can use signing keys
+  - Cannot create/delete keys
+  - Used by sign-orchestrator
+
+Key ID 4: Backup Operations
+  - Can export wrapped backups
+  - Cannot use keys directly
+  - For disaster recovery
+
+# Example: Proper key separation
+$ bin/rombsr hsm-provision
+Creating admin key (ID 2)...
+Creating signing key (ID 3)...
+Creating backup key (ID 4)...
+Deleting factory default (ID 1)...
+Provisioning complete!</code></pre>
+    </div>
+
+    <h3>Signing Key Architecture</h3>
+    <div class="code-block">
+      <pre><code># Android Signing Keys in HSM
+platform    - Signs core system apps
+media       - Signs media/download providers  
+shared      - Signs launcher/contacts
+networkstack - Signs connectivity components
+sdk_sandbox  - Signs sandboxed SDK runtime
+bluetooth   - Signs Bluetooth system apps
+testkey     - Development only (not in production)
+
+# AVB (Android Verified Boot) Keys
+avb_root    - Root of trust for verified boot
+avb_intermediate - Signs individual partitions
+
+# OTA Keys
+ota_key     - Signs OTA metadata and payloads
+
+# All keys use RSA-4096 or EC-P256 as appropriate</code></pre>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Cryptographic Verification Chain</h2>
+    
+    <h3>End-to-End Verification</h3>
+    <p>Every artifact goes through multiple layers of cryptographic verification:</p>
+
+    <div class="code-block">
+      <pre><code>1. Build Phase
+   ├─ Calculate SHA-256 of unsigned artifacts
+   ├─ Generate signing request with hashes
+   └─ Sign request with build node GPG key
+
+2. Queue Commit
+   ├─ Verify GPG signature on commit
+   ├─ Check commit author authorization
+   └─ Validate request JSON schema
+
+3. Sign Validation
+   ├─ Pull request from queue
+   ├─ Verify GPG signature integrity
+   ├─ Validate artifact hashes
+   └─ Check signing quotas/policies
+
+4. HSM Signing
+   ├─ Authenticate to HSM with role key
+   ├─ Sign artifact hash (not full file)
+   └─ Generate signature metadata
+
+5. Response Validation
+   ├─ Package signatures with metadata
+   ├─ Sign response with sign node GPG
+   └─ Commit to GitOps queue
+
+6. Build Verification
+   ├─ Verify response GPG signature
+   ├─ Validate signature format
+   ├─ Apply signatures to artifacts
+   └─ Verify final signed artifacts</code></pre>
+    </div>
+
+    <div class="security-grid">
+      <div class="security-item">
+        <span class="material-icons">fingerprint</span>
+        <div>
+          <strong>Hash Functions</strong>
+          <p>SHA-256 for all artifact identification, SHA-512 for critical paths</p>
+        </div>
+      </div>
+      <div class="security-item">
+        <span class="material-icons">vpn_key</span>
+        <div>
+          <strong>Signature Algorithms</strong>
+          <p>RSA-4096 with SHA-256 (PKCS#1 v1.5), ECDSA P-256 for AVB</p>
+        </div>
+      </div>
+      <div class="security-item">
+        <span class="material-icons">lock</span>
+        <div>
+          <strong>Key Wrapping</strong>
+          <p>AES-256-CCM for HSM backup exports, never plaintext</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>GitOps Security Model</h2>
+    
+    <h3>Why Git for Security Queue?</h3>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>Immutable History</h4>
+        <p>Git's merkle tree structure makes history tampering mathematically detectable. Every commit is chained to previous commits. Rewriting history changes all subsequent hashes.</p>
+      </div>
+      <div class="feature-card">
+        <h4>Cryptographic Signatures</h4>
+        <p>GPG-signed commits provide non-repudiation. Can prove who submitted each signing request. Signature verification is mandatory, not optional.</p>
+      </div>
+      <div class="feature-card">
+        <h4>Distributed Verification</h4>
+        <p>Multiple parties can maintain queue copies. Discrepancies are immediately obvious. No single point of failure or trust.</p>
+      </div>
+    </div>
+
+    <h3>Queue Security Policies</h3>
+    <div class="code-block">
+      <pre><code># Git configuration for signing queue
+[core]
+    # Reject unsigned commits
+    rejectUnsigned = true
+
+[receive]
+    # Only accept signed pushes
+    certNonceSeed = &lt;random&gt;
+    advertisePushOptions = true
+
+[push]
+    # Require GPG signatures
+    gpgSign = true
+
+# Branch protection rules
+- main branch: protected
+- Force pushes: disabled
+- Signed commits: required
+- Reviews: optional (for manual verification)</code></pre>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Security Best Practices</h2>
+    
+    <h3>Operational Security</h3>
+    <div class="security-grid">
+      <div class="security-item">
+        <span class="material-icons">admin_panel_settings</span>
+        <div>
+          <strong>Principle of Least Privilege</strong>
+          <p>Build nodes cannot sign. Sign nodes cannot build. Admin access separated from operational access.</p>
+        </div>
+      </div>
+      <div class="security-item">
+        <span class="material-icons">psychology</span>
+        <div>
+          <strong>Defense in Depth</strong>
+          <p>Multiple security layers: network isolation, HSM protection, audit logging, cryptographic verification.</p>
+        </div>
+      </div>
+      <div class="security-item">
+        <span class="material-icons">visibility</span>
+        <div>
+          <strong>Security Transparency</strong>
+          <p>All operations logged and observable. Security through openness, not obscurity.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Deployment Security Checklist</h3>
+    <div class="code-block">
+      <pre><code>□ Physical Security
+  ✓ HSM in locked datacenter cabinet
+  ✓ Access logs for physical entry
+  ✓ Security cameras on HSM location
+
+□ Network Security  
+  ✓ Sign nodes on isolated network segment
+  ✓ Firewall rules limit HSM access
+  ✓ No internet access from sign nodes
+
+□ Access Control
+  ✓ Multi-factor authentication required
+  ✓ SSH key-based access only
+  ✓ Audit logs for all access
+
+□ Key Management
+  ✓ HSM provisioned with unique passwords
+  ✓ Factory default key deleted
+  ✓ Backup keys stored in separate location
+
+□ Monitoring
+  ✓ Prometheus alerts configured
+  ✓ Log aggregation enabled
+  ✓ Anomaly detection active</code></pre>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Compliance & Standards</h2>
+    
+    <h3>Industry Standards Alignment</h3>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>FIPS 140-2 Level 2</h4>
+        <p>YubiHSM2 hardware certification ensures cryptographic operations meet US government standards. Tamper-evident hardware with role-based authentication.</p>
+      </div>
+      <div class="feature-card">
+        <h4>Common Criteria EAL4+</h4>
+        <p>HSM evaluated for methodically designed, tested, and reviewed security. Suitable for protecting high-value assets against sophisticated attacks.</p>
+      </div>
+      <div class="feature-card">
+        <h4>PCI DSS Compliance</h4>
+        <p>Architecture supports PCI requirements for key management. Audit trails, access controls, and key rotation capabilities built-in.</p>
+      </div>
+    </div>
+
+    <h3>Audit & Compliance Features</h3>
+    <ul>
+      <li><strong>Complete Audit Trail:</strong> Every signing operation recorded in Git with timestamp and operator identity</li>
+      <li><strong>Non-Repudiation:</strong> GPG signatures prove who authorized each operation</li>
+      <li><strong>Forensic Analysis:</strong> Historical data preserved indefinitely for investigation</li>
+      <li><strong>Compliance Reports:</strong> Automated generation of signing activity reports</li>
+      <li><strong>Key Usage Metrics:</strong> Track which keys sign what, when, and by whom</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>Incident Response</h2>
+    
+    <h3>Security Incident Playbooks</h3>
+    <div class="threat-card">
+      <h4>Suspected Key Compromise</h4>
+      <div class="code-block">
+        <pre><code>1. Immediately disable signing operations
+   $ sudo systemctl stop rombsr-sign
+
+2. Revoke potentially compromised keys
+   $ bin/rombsr hsm-revoke --key-id &lt;id&gt;
+
+3. Audit recent signing operations
+   $ cd signing-queue && git log --since="2 days ago"
+
+4. Generate new keys if needed
+   $ bin/rombsr hsm-rotate-keys
+
+5. Update all ROM builds with new keys
+6. Publish security advisory</code></pre>
+      </div>
+    </div>
+
+    <div class="threat-card">
+      <h4>Unauthorized Signing Attempt</h4>
+      <div class="code-block">
+        <pre><code>1. Check audit logs for anomalies
+   $ journalctl -u rombsr-sign --since="1 hour ago"
+
+2. Verify queue integrity
+   $ cd signing-queue && git fsck
+
+3. Review recent commits
+   $ git log --show-signature
+
+4. Check for unauthorized modifications
+   $ git diff origin/main
+
+5. Investigate and document findings</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 ROMbsr Project. Security-first Android ROM orchestration.</p>
+  </footer>
+
+  <!-- Theme Toggle Script -->
+  <script>
+    (function () {
+      const toggle = document.getElementById('themeToggle');
+      const icon = document.getElementById('themeIcon');
+      const storedTheme = localStorage.getItem('theme');
+      if (storedTheme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        icon.textContent = 'light_mode';
+      }
+      toggle.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        if (current === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'light');
+          localStorage.setItem('theme', 'light');
+          icon.textContent = 'light_mode';
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          localStorage.setItem('theme', 'dark');
+          icon.textContent = 'dark_mode';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

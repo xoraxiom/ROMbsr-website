@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ROMbsr Deployment Guide - Production setup, configuration, monitoring, and operations for enterprise Android ROM orchestration" />
+  <title>ROMbsr Deployment - Production Operations Guide</title>
+  <link rel="icon" href="https://fonts.gstatic.com/s/i/materialicons/android/v12/24px.svg" type="image/svg+xml">
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+  <!-- Shared Styles -->
+  <style>
+    :root {
+      --bg-color: #121212;
+      --surface-color: #1e1e1e;
+      --surface-hover: #262626;
+      --text-color: #e0e0e0;
+      --text-secondary: #a0a0a0;
+      --primary-color: #8ab4f8;
+      --accent-color: #03dac5;
+      --error-color: #cf6679;
+      --warning-color: #fbc02d;
+      --success-color: #81c784;
+      --hero-bg: #000000;
+      --code-bg: #050505;
+      --code-border: rgba(138,180,248,0.4);
+    }
+    [data-theme="light"] {
+      --bg-color: #ffffff;
+      --surface-color: #dcdcdc;
+      --surface-hover: #c5c5c5;
+      --text-color: #1a1a1a;
+      --text-secondary: #4a4a4a;
+      --primary-color: #1a73e8;
+      --accent-color: #018786;
+      --error-color: #d93025;
+      --warning-color: #fbbc04;
+      --success-color: #34a853;
+      --hero-bg: #e5ecf4;
+      --code-bg: #d5dfe8;
+      --code-border: rgba(26,115,232,0.5);
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Roboto Flex", "Roboto", sans-serif;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    header {
+      background-color: var(--surface-color);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0,0,0,.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+    [data-theme="light"] header {
+      box-shadow: 0 2px 12px rgba(0,0,0,.2);
+      border-bottom: 1px solid rgba(0,0,0,0.2);
+      background: #f5f5f5;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      text-decoration: none;
+      color: var(--text-color);
+      transition: opacity 0.3s;
+    }
+    .logo:hover {
+      opacity: 0.8;
+    }
+    .logo .material-icons {
+      font-size: 1.8rem;
+      color: var(--primary-color);
+    }
+    nav {
+      display: flex;
+      align-items: center;
+    }
+    nav a {
+      color: var(--text-color);
+      margin-left: 1.5rem;
+      text-decoration: none;
+      position: relative;
+      transition: color .3s;
+    }
+    nav a:hover {
+      color: var(--primary-color);
+    }
+    nav a.active {
+      color: var(--primary-color);
+    }
+    .toggle-btn {
+      background:none;
+      border:none;
+      color:var(--text-color);
+      cursor:pointer;
+      font-size:1.8rem;
+      margin-left:1.5rem;
+      transition: color .3s;
+    }
+    .toggle-btn:hover {
+      color: var(--primary-color);
+    }
+
+    /* Hero */
+    .hero {
+      background: var(--hero-bg);
+      padding: 3rem 2rem;
+      text-align: center;
+      border-bottom: 1px solid var(--surface-color);
+    }
+    .hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      color: var(--text-secondary);
+      max-width: 800px;
+      margin: 0 auto;
+      font-size: 1.1rem;
+    }
+
+    /* Sections */
+    .section {
+      max-width:1200px;
+      margin:3rem auto;
+      padding:0 2rem;
+    }
+    .section h2 {
+      font-size:2rem;
+      margin-bottom:1.5rem;
+      color:var(--primary-color);
+    }
+    .section h3 {
+      font-size:1.5rem;
+      margin: 2rem 0 1rem;
+      color:var(--text-color);
+    }
+
+    /* Deployment Steps */
+    .steps {
+      counter-reset: step-counter;
+      margin-top: 2rem;
+    }
+    .step {
+      position: relative;
+      padding-left: 3rem;
+      margin-bottom: 2rem;
+      counter-increment: step-counter;
+    }
+    .step::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2rem;
+      height: 2rem;
+      background: var(--primary-color);
+      color: var(--bg-color);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    /* Feature Cards */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    .feature-card {
+      background: var(--surface-color);
+      padding: 2rem;
+      border-radius: 12px;
+      transition: all .3s;
+      border: 1px solid rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    [data-theme="light"] .feature-card {
+      border: 1px solid rgba(0,0,0,0.2);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+      background: #f8f8f8;
+    }
+    .feature-card h4 {
+      font-size: 1.3rem;
+      margin-bottom: .5rem;
+      color: var(--primary-color);
+    }
+
+    /* Code Blocks */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      overflow-x: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .code-block pre {
+      margin: 0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: .9rem;
+      color: var(--text-color);
+    }
+    code {
+      background: var(--code-bg);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.9em;
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2rem 0;
+    }
+    th {
+      background: var(--surface-color);
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--primary-color);
+    }
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--surface-color);
+    }
+
+    /* Warning Box */
+    .warning-box {
+      background: rgba(251,192,45,0.1);
+      border-left: 4px solid var(--warning-color);
+      padding: 1.5rem;
+      margin: 2rem 0;
+      border-radius: 8px;
+    }
+    .warning-box strong {
+      color: var(--warning-color);
+    }
+
+    /* Success Box */
+    .success-box {
+      background: rgba(3,218,197,0.1);
+      border-left: 4px solid var(--accent-color);
+      padding: 1.5rem;
+      margin: 2rem 0;
+      border-radius: 8px;
+    }
+
+    /* Lists */
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    li {
+      margin-bottom: .5rem;
+    }
+
+    /* Footer */
+    footer {
+      background:var(--surface-color);
+      text-align:center;
+      padding:2rem;
+      margin-top: 4rem;
+      border-top: 1px solid rgba(0,0,0,0.1);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .step {
+        padding-left: 2.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">
+      <span class="material-icons">android</span>
+      <span>ROMbsr</span>
+    </a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/architecture.html">Architecture</a>
+      <a href="/security.html">Security</a>
+      <a href="/deployment.html" class="active">Deployment</a>
+      <a href="https://github.com/xoraxiom/ROMbsr">GitHub</a>
+      <button class="toggle-btn" id="themeToggle" aria-label="Toggle dark/light mode">
+        <span class="material-icons" id="themeIcon">dark_mode</span>
+      </button>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1>Production Deployment Guide</h1>
+    <p>Step-by-step instructions for deploying ROMbsr in enterprise environments with high availability, monitoring, and operational excellence</p>
+  </section>
+
+  <section class="section">
+    <h2>Deployment Architecture</h2>
+    <p>A typical production ROMbsr deployment consists of multiple specialized nodes working together:</p>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>Build Nodes (2-4 servers)</h4>
+        <ul>
+          <li>High CPU/RAM for compilation</li>
+          <li>500GB+ fast storage per node</li>
+          <li>Can be cloud or on-premise</li>
+          <li>Stateless - can scale horizontally</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <h4>Sign Nodes (2 servers)</h4>
+        <ul>
+          <li>Physical servers with USB ports</li>
+          <li>Isolated network segment</li>
+          <li>YubiHSM2 attached</li>
+          <li>Active/passive HA configuration</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <h4>GitOps Queue (Git server)</h4>
+        <ul>
+          <li>Can use GitHub/GitLab/Gitea</li>
+          <li>Private repository required</li>
+          <li>GPG commit signing enforced</li>
+          <li>Webhook support beneficial</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Production Setup Guide</h2>
+    
+    <div class="steps">
+      <div class="step">
+        <h4>Infrastructure Preparation</h4>
+        <div class="code-block">
+          <pre><code># Create dedicated user
+sudo useradd -r -s /bin/bash -m rombsr
+sudo usermod -a -G docker rombsr  # If using containers
+
+# Create directory structure
+sudo mkdir -p /opt/rombsr
+sudo mkdir -p /etc/rombsr
+sudo mkdir -p /var/lib/rombsr
+sudo mkdir -p /var/log/rombsr
+
+# Set permissions
+sudo chown -R rombsr:rombsr /opt/rombsr
+sudo chown -R rombsr:rombsr /etc/rombsr
+sudo chown -R rombsr:rombsr /var/lib/rombsr
+sudo chown -R rombsr:rombsr /var/log/rombsr</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Install ROMbsr</h4>
+        <div class="code-block">
+          <pre><code># Clone repository
+cd /opt
+sudo -u rombsr git clone https://github.com/your-org/rombsr.git
+cd rombsr
+
+# Build PKCS#11 libraries
+sudo -u rombsr make all
+
+# Install Python dependencies
+sudo -u rombsr python3 -m venv /var/lib/rombsr/venv
+sudo -u rombsr /var/lib/rombsr/venv/bin/pip install -r lib/python/requirements.txt
+
+# Set production paths
+export ROMBSR_ROOT=/opt/rombsr
+export ROMBSR_CONFIG=/etc/rombsr
+export ROMBSR_DATA=/var/lib/rombsr</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Configure Build Nodes</h4>
+        <div class="code-block">
+          <pre><code># /etc/rombsr/common.conf
+SIGNING_QUEUE_TYPE=git
+SIGNING_GIT_URL=git@gitops.internal:android/signing-queue.git
+RELEASE_BASE_URL=https://releases.example.com
+LOG_LEVEL=INFO
+LOG_FORMAT=json
+
+# /etc/rombsr/build.conf
+# Request capture mode - intercepts signing operations
+SIGNING_MODE=mock
+BUILD_JOBS=32
+CCACHE_SIZE=100G
+BUILD_TMPFS_SIZE=30G
+REPO_SYNC_JOBS=8
+GIT_USER_NAME="ROMbsr Build Bot"
+GIT_USER_EMAIL="rombsr-build@example.com"</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Configure Sign Nodes</h4>
+        <div class="code-block">
+          <pre><code># /etc/rombsr/sign.conf
+# Real HSM mode - processes captured requests
+SIGNING_MODE=hsm
+HSM_CONNECTOR_URL=http://localhost:12345
+HSM_AUTH_KEY_ID=3
+SIGNING_BATCH_SIZE=10
+SIGNING_RATE_LIMIT=100
+GIT_USER_NAME="ROMbsr Sign Bot"
+GIT_USER_EMAIL="rombsr-sign@example.com"
+
+# Install YubiHSM connector
+wget https://developers.yubico.com/YubiHSM2/Releases/yubihsm-connector-latest.tar.gz
+tar xzf yubihsm-connector-latest.tar.gz
+cd yubihsm-connector
+sudo make install
+
+# Configure connector
+cat > /etc/yubihsm-connector.yaml <<EOF
+listen: localhost:12345
+loglevel: INFO
+logfile: /var/log/yubihsm-connector.log
+EOF</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Setup HSM</h4>
+        <div class="code-block">
+          <pre><code># Insert YubiHSM2 into USB port
+# Start connector service
+sudo systemctl enable --now yubihsm-connector
+
+# Provision HSM (one-time)
+cd /opt/rombsr
+sudo -u rombsr bin/rombsr hsm-provision
+
+# Import Android signing keys
+sudo -u rombsr bin/rombsr hsm-import /secure/android-keys/
+
+# Verify setup
+sudo -u rombsr bin/rombsr hsm-status
+sudo -u rombsr bin/rombsr hsm-test</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Install Systemd Services</h4>
+        <div class="code-block">
+          <pre><code># Copy service files
+sudo cp /opt/rombsr/contrib/systemd/*.service /etc/systemd/system/
+sudo cp /opt/rombsr/contrib/systemd/*.timer /etc/systemd/system/
+
+# Reload systemd
+sudo systemctl daemon-reload
+
+# Enable services (sign node)
+sudo systemctl enable --now rombsr-sign.service
+sudo systemctl enable --now rombsr-monitor.service
+
+# Enable timers (build node)
+sudo systemctl enable --now rombsr-nightly.timer
+sudo systemctl enable --now rombsr-cleanup.timer
+
+# Check status
+sudo systemctl status rombsr-*</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <h3>Understanding SIGNING_MODE Configuration</h3>
+    <div class="warning-box">
+      <strong>Important:</strong> SIGNING_MODE is not about development vs production environments. 
+      Both modes are production features that work together:
+    </div>
+    
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>SIGNING_MODE=mock (Build Nodes)</h4>
+        <p>Enables request capture via libmock_pkcs11.so. This intercepts signing operations during build, 
+        saves the requests, and returns temporary signatures so the build can complete. This is NOT a test mode - 
+        it's how production builds capture what needs to be signed.</p>
+      </div>
+      <div class="feature-card">
+        <h4>SIGNING_MODE=hsm (Sign Nodes)</h4>
+        <p>Uses real HSM for processing captured signing requests. The sign orchestrator reads requests from 
+        the GitOps queue, applies real signatures using the YubiHSM2, and writes responses back. This completes 
+        the signing process started by the build nodes.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>High Availability Configuration</h2>
+    
+    <h3>Active/Passive Sign Nodes</h3>
+    <p>For production environments requiring high availability:</p>
+    
+    <div class="code-block">
+      <pre><code># Primary sign node
+SIGN_NODE_ROLE=primary
+SIGN_NODE_PRIORITY=100
+
+# Secondary sign node  
+SIGN_NODE_ROLE=secondary
+SIGN_NODE_PRIORITY=50
+
+# Use distributed locking (Redis/etcd)
+LOCK_BACKEND=redis
+LOCK_REDIS_URL=redis://ha-redis:6379/0
+LOCK_KEY_PREFIX=rombsr:sign:
+
+# Failover configuration
+FAILOVER_TIMEOUT=300
+HEALTH_CHECK_INTERVAL=30</code></pre>
+    </div>
+
+    <div class="warning-box">
+      <strong>Important:</strong> Only one sign node should be active at a time to prevent race conditions. 
+      The distributed lock ensures mutual exclusion even if both nodes are running.
+    </div>
+
+    <h3>Load Balancing Build Nodes</h3>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>Round-Robin Builds</h4>
+        <p>Use a simple scheduler to distribute builds across available nodes. Each node pulls from a central work queue.</p>
+      </div>
+      <div class="feature-card">
+        <h4>Capacity-Based</h4>
+        <p>Monitor CPU/RAM usage and route builds to least loaded node. Prometheus metrics enable smart scheduling.</p>
+      </div>
+      <div class="feature-card">
+        <h4>Device Affinity</h4>
+        <p>Assign specific devices to specific build nodes to optimize cache usage and reduce redundant downloads.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Monitoring & Alerting</h2>
+    
+    <h3>Prometheus Configuration</h3>
+    <div class="code-block">
+      <pre><code># prometheus.yml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'rombsr-build'
+    static_configs:
+      - targets: ['build1:9090', 'build2:9090', 'build3:9090']
+    
+  - job_name: 'rombsr-sign'
+    static_configs:
+      - targets: ['sign1:9090', 'sign2:9090']
+
+# Key metrics to monitor
+# - rombsr_build_duration_seconds
+# - rombsr_signing_requests_pending
+# - rombsr_hsm_errors_total
+# - rombsr_disk_usage_percent</code></pre>
+    </div>
+
+    <h3>Critical Alerts</h3>
+    <div class="code-block">
+      <pre><code># alerting_rules.yml
+groups:
+  - name: rombsr
+    rules:
+      - alert: BuildFailed
+        expr: increase(rombsr_build_failures_total[1h]) > 0
+        annotations:
+          summary: "Build failed for {{ $labels.rom }}/{{ $labels.device }}"
+      
+      - alert: SigningQueueBacklog
+        expr: rombsr_signing_requests_pending > 50
+        for: 10m
+        annotations:
+          summary: "Signing queue backlog: {{ $value }} requests pending"
+      
+      - alert: HSMError
+        expr: increase(rombsr_hsm_errors_total[5m]) > 0
+        annotations:
+          summary: "HSM errors detected"
+          severity: critical
+      
+      - alert: DiskSpaceLow
+        expr: rombsr_disk_usage_percent > 85
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"</code></pre>
+    </div>
+
+    <h3>Grafana Dashboard</h3>
+    <p>Import the provided Grafana dashboard for comprehensive visibility:</p>
+    <ul>
+      <li>Build success/failure rates</li>
+      <li>Average build duration by ROM/device</li>
+      <li>Signing queue depth over time</li>
+      <li>HSM operation latency</li>
+      <li>System resource utilization</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>Operational Procedures</h2>
+    
+    <h3>Daily Operations Checklist</h3>
+    <div class="code-block">
+      <pre><code>Morning (9 AM):
+□ Check overnight build status
+  $ rombsr status --since yesterday
+  
+□ Review any alerts from monitoring
+  $ journalctl -u rombsr-* --since "8 hours ago" | grep ERROR
+
+□ Verify signing queue health
+  $ rombsr sign --status
+
+□ Check disk space on all nodes
+  $ ansible all -m shell -a "df -h /var/lib/rombsr"
+
+End of Day (5 PM):
+□ Trigger nightly builds if not automated
+  $ rombsr build grapheneos shiba
+  $ rombsr build calyxos shiba
+
+□ Clean old builds (keep last 7 days)
+  $ rombsr clean --builds --older-than 7
+
+□ Verify HSM connectivity for overnight signing
+  $ rombsr hsm-status</code></pre>
+    </div>
+
+    <h3>Maintenance Windows</h3>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>Weekly Maintenance</h4>
+        <ul>
+          <li>Update ROMbsr to latest version</li>
+          <li>Rotate logs to prevent disk fill</li>
+          <li>Update virus definitions for scans</li>
+          <li>Test backup restoration procedure</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <h4>Monthly Maintenance</h4>
+        <ul>
+          <li>Security patches for OS</li>
+          <li>Review and update firewall rules</li>
+          <li>Audit user access permissions</li>
+          <li>Performance tuning review</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <h4>Quarterly Maintenance</h4>
+        <ul>
+          <li>HSM firmware updates</li>
+          <li>Disaster recovery drill</li>
+          <li>Security audit and pen testing</li>
+          <li>Capacity planning review</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Performance Tuning</h2>
+    
+    <h3>Build Performance Optimization</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Default</th>
+          <th>Optimized</th>
+          <th>Impact</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>BUILD_JOBS</td>
+          <td>auto (nproc)</td>
+          <td>nproc * 1.5</td>
+          <td>+20% build speed</td>
+        </tr>
+        <tr>
+          <td>CCACHE_SIZE</td>
+          <td>50G</td>
+          <td>100-200G</td>
+          <td>+40% cache hits</td>
+        </tr>
+        <tr>
+          <td>USE_TMPFS</td>
+          <td>false</td>
+          <td>true (64GB+ RAM)</td>
+          <td>+30% I/O speed</td>
+        </tr>
+        <tr>
+          <td>REPO_SYNC_JOBS</td>
+          <td>4</td>
+          <td>16</td>
+          <td>+60% sync speed</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Storage Configuration</h3>
+    <div class="code-block">
+      <pre><code># Fast NVMe for builds
+/var/lib/rombsr/builds  - NVMe SSD (1TB+)
+/var/lib/rombsr/cache   - NVMe SSD (200GB)
+
+# Standard SSD for sources  
+/var/lib/rombsr/sources - SATA SSD (500GB)
+
+# tmpfs for maximum speed (requires 64GB+ RAM)
+mount -t tmpfs -o size=30G tmpfs /var/lib/rombsr/builds/out
+
+# Optimize filesystem
+tune2fs -o journal_data_writeback /dev/nvme0n1p1
+tune2fs -O ^has_journal /dev/nvme0n1p1  # Disable journal (risky!)</code></pre>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Troubleshooting Guide</h2>
+    
+    <h3>Common Issues and Solutions</h3>
+    <div class="feature-card">
+      <h4>Build Keeps Failing at Same Stage</h4>
+      <div class="code-block">
+        <pre><code># Check state file for errors
+cat /var/lib/rombsr/state/&lt;batch-id&gt;.json | jq .
+
+# Clear ccache if corruption suspected
+ccache -C
+
+# Increase memory limits
+ulimit -v unlimited
+
+# Check for disk space issues
+df -h /var/lib/rombsr</code></pre>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <h4>HSM Not Responding</h4>
+      <div class="code-block">
+        <pre><code># Check USB connection
+lsusb | grep Yubico
+
+# Restart connector
+sudo systemctl restart yubihsm-connector
+
+# Check connector logs
+tail -f /var/log/yubihsm-connector.log
+
+# Test with yubihsm-shell
+yubihsm-shell -C localhost:12345</code></pre>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <h4>Signing Queue Stuck</h4>
+      <div class="code-block">
+        <pre><code># Check git connectivity
+cd /var/lib/rombsr/signing-queue
+git pull
+
+# Verify GPG keys
+git log --show-signature -1
+
+# Check sign orchestrator logs
+journalctl -u rombsr-sign -f
+
+# Manual queue processing
+rombsr sign --once --verbose</code></pre>
+      </div>
+    </div>
+
+    <div class="success-box">
+      <strong>Pro Tip:</strong> Enable debug logging temporarily for detailed troubleshooting:
+      <code>export ROMBSR_LOG_LEVEL=DEBUG</code>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Disaster Recovery</h2>
+    
+    <h3>Backup Strategy</h3>
+    <div class="code-block">
+      <pre><code>#!/bin/bash
+# Daily backup script
+
+# Configuration backup
+tar czf /backup/rombsr-config-$(date +%Y%m%d).tar.gz /etc/rombsr
+
+# State backup
+tar czf /backup/rombsr-state-$(date +%Y%m%d).tar.gz /var/lib/rombsr/state
+
+# HSM backup (encrypted)
+rombsr hsm-export /backup/hsm-$(date +%Y%m%d)
+
+# Signing queue backup
+cd /var/lib/rombsr/signing-queue
+git bundle create /backup/queue-$(date +%Y%m%d).bundle --all
+
+# Upload to offsite storage
+aws s3 sync /backup/ s3://disaster-recovery/rombsr/</code></pre>
+    </div>
+
+    <h3>Recovery Procedures</h3>
+    <ol>
+      <li><strong>System Recovery:</strong> Restore from configuration management (Ansible/Puppet)</li>
+      <li><strong>HSM Recovery:</strong> Import keys from encrypted backup to new HSM</li>
+      <li><strong>Queue Recovery:</strong> Clone from git bundle or secondary remote</li>
+      <li><strong>State Recovery:</strong> Restore state files to resume interrupted builds</li>
+    </ol>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 ROMbsr Project. Built for production, designed for scale.</p>
+  </footer>
+
+  <!-- Theme Toggle Script -->
+  <script>
+    (function () {
+      const toggle = document.getElementById('themeToggle');
+      const icon = document.getElementById('themeIcon');
+      const storedTheme = localStorage.getItem('theme');
+      if (storedTheme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        icon.textContent = 'light_mode';
+      }
+      toggle.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        if (current === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'light');
+          localStorage.setItem('theme', 'light');
+          icon.textContent = 'light_mode';
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          localStorage.setItem('theme', 'dark');
+          icon.textContent = 'dark_mode';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

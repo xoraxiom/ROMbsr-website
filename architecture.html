@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ROMbsr Architecture Deep Dive - Understanding the security-focused design of Android ROM build orchestration" />
+  <title>ROMbsr Architecture - Technical Deep Dive</title>
+  <link rel="icon" href="https://fonts.gstatic.com/s/i/materialicons/android/v12/24px.svg" type="image/svg+xml">
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+  <!-- Styles -->
+  <style>
+    :root {
+      --bg-color: #121212;
+      --surface-color: #1e1e1e;
+      --surface-hover: #262626;
+      --text-color: #e0e0e0;
+      --text-secondary: #a0a0a0;
+      --primary-color: #8ab4f8;
+      --accent-color: #03dac5;
+      --error-color: #cf6679;
+      --warning-color: #fbc02d;
+      --hero-bg: #000000;
+      --code-bg: #050505;
+      --code-border: rgba(138,180,248,0.4);
+    }
+    [data-theme="light"] {
+      --bg-color: #ffffff;
+      --surface-color: #dcdcdc;
+      --surface-hover: #c5c5c5;
+      --text-color: #1a1a1a;
+      --text-secondary: #4a4a4a;
+      --primary-color: #1a73e8;
+      --accent-color: #018786;
+      --error-color: #d93025;
+      --warning-color: #fbbc04;
+      --hero-bg: #e5ecf4;
+      --code-bg: #d5dfe8;
+      --code-border: rgba(26,115,232,0.5);
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Roboto Flex", "Roboto", sans-serif;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    header {
+      background-color: var(--surface-color);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0,0,0,.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+    [data-theme="light"] header {
+      box-shadow: 0 2px 12px rgba(0,0,0,.2);
+      border-bottom: 1px solid rgba(0,0,0,0.2);
+      background: #f5f5f5;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      text-decoration: none;
+      color: var(--text-color);
+      transition: opacity 0.3s;
+    }
+    .logo:hover {
+      opacity: 0.8;
+    }
+    .logo .material-icons {
+      font-size: 1.8rem;
+      color: var(--primary-color);
+    }
+    nav {
+      display: flex;
+      align-items: center;
+    }
+    nav a {
+      color: var(--text-color);
+      margin-left: 1.5rem;
+      text-decoration: none;
+      position: relative;
+      transition: color .3s;
+    }
+    nav a:hover {
+      color: var(--primary-color);
+    }
+    nav a.active {
+      color: var(--primary-color);
+    }
+    .toggle-btn {
+      background:none;
+      border:none;
+      color:var(--text-color);
+      cursor:pointer;
+      font-size:1.8rem;
+      margin-left:1.5rem;
+      transition: color .3s;
+    }
+    .toggle-btn:hover {
+      color: var(--primary-color);
+    }
+
+    /* Hero */
+    .hero {
+      background: var(--hero-bg);
+      padding: 3rem 2rem;
+      text-align: center;
+      border-bottom: 1px solid var(--surface-color);
+    }
+    .hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      color: var(--text-secondary);
+      max-width: 800px;
+      margin: 0 auto;
+      font-size: 1.1rem;
+    }
+
+    /* Sections */
+    .section {
+      max-width:1200px;
+      margin:3rem auto;
+      padding:0 2rem;
+    }
+    .section h2 {
+      font-size:2rem;
+      margin-bottom:1.5rem;
+      color:var(--primary-color);
+    }
+    .section h3 {
+      font-size:1.5rem;
+      margin: 2rem 0 1rem;
+      color:var(--text-color);
+    }
+
+    /* Architecture Diagrams */
+    .architecture-diagram {
+      background: var(--code-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      margin: 2rem 0;
+      overflow-x: auto;
+      border: 1px solid var(--code-border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    .architecture-diagram pre {
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: .9rem;
+      line-height: 1.4;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    /* Code Blocks */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      overflow-x: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .code-block pre {
+      margin: 0;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: .9rem;
+      color: var(--text-color);
+    }
+    .code-block pre code {
+      font-family: inherit;
+      background: none;
+      padding: 0;
+      border: none;
+    }
+    code {
+      background: var(--code-bg);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 0.9em;
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+
+    /* Feature Cards */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    .feature-card {
+      background: var(--surface-color);
+      padding: 2rem;
+      border-radius: 12px;
+      transition: all .3s;
+      border: 1px solid rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    [data-theme="light"] .feature-card {
+      border: 1px solid rgba(0,0,0,0.2);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+      background: #f8f8f8;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      border-color: var(--primary-color);
+    }
+    .feature-card h4 {
+      font-size: 1.3rem;
+      margin-bottom: .5rem;
+      color: var(--primary-color);
+    }
+
+    /* Lists */
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    li {
+      margin-bottom: .5rem;
+    }
+
+    /* Callout Boxes */
+    .callout {
+      padding: 1.5rem;
+      margin: 2rem 0;
+      border-radius: 8px;
+      border-left: 4px solid;
+    }
+    .callout-info {
+      background: rgba(138,180,248,0.1);
+      border-color: var(--primary-color);
+    }
+    .callout-warning {
+      background: rgba(251,192,45,0.1);
+      border-color: var(--warning-color);
+    }
+    .callout-security {
+      background: rgba(3,218,197,0.1);
+      border-color: var(--accent-color);
+    }
+
+    /* Footer */
+    footer {
+      background:var(--surface-color);
+      text-align:center;
+      padding:2rem;
+      margin-top: 4rem;
+      border-top: 1px solid rgba(0,0,0,0.1);
+    }
+    [data-theme="light"] footer {
+      background: #f0f0f0;
+      border-top: 2px solid rgba(0,0,0,0.15);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      nav a {
+        margin: 0 .75rem;
+      }
+      .hero h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">
+      <span class="material-icons">android</span>
+      <span>ROMbsr</span>
+    </a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/architecture.html" class="active">Architecture</a>
+      <a href="/security.html">Security</a>
+      <a href="/deployment.html">Deployment</a>
+      <a href="https://github.com/xoraxiom/ROMbsr">GitHub</a>
+      <button class="toggle-btn" id="themeToggle" aria-label="Toggle dark/light mode">
+        <span class="material-icons" id="themeIcon">dark_mode</span>
+      </button>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1>ROMbsr Architecture Deep Dive</h1>
+    <p>Understanding the security-focused design principles and technical implementation of ROMbsr's zero-trust Android ROM orchestration system</p>
+  </section>
+
+  <section class="section">
+    <h2>Core Design Principles</h2>
+    <p>ROMbsr's architecture is built on five fundamental security principles that guide every design decision:</p>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>1. Complete Key Isolation</h4>
+        <p>Signing keys NEVER exist outside the HSM. No intermediate storage, no temporary files, no memory copies. The build infrastructure mathematically cannot access signing keys.</p>
+      </div>
+      <div class="feature-card">
+        <h4>2. Mutual Distrust</h4>
+        <p>Build nodes don't trust sign nodes. Sign nodes don't trust build nodes. Every operation is cryptographically verified. Compromise of one component cannot compromise others.</p>
+      </div>
+      <div class="feature-card">
+        <h4>3. Immutable Audit Trail</h4>
+        <p>Git provides cryptographically-signed, tamper-evident logging. Every signing request and response is permanently recorded. Forensic analysis possible years later.</p>
+      </div>
+      <div class="feature-card">
+        <h4>4. Fail-Safe Defaults</h4>
+        <p>Request capture on build nodes prevents key exposure. Production signing requires explicit HSM configuration. No silent failures - every error is logged and alerted.</p>
+      </div>
+      <div class="feature-card">
+        <h4>5. Operational Transparency</h4>
+        <p>Every operation is observable through structured logs and metrics. No black boxes. Security through transparency, not obscurity.</p>
+      </div>
+      <div class="feature-card">
+        <h4>6. Resumable by Design</h4>
+        <p>State machine architecture ensures every operation is idempotent. Failures don't mean starting over. Resume exactly where you left off.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>System Architecture Overview</h2>
+    
+    <div class="architecture-diagram">
+      <pre>
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                              BUILD ENVIRONMENT                               │
+│                                                                              │
+│  ┌────────────────┐      ┌─────────────────┐      ┌──────────────────┐       │
+│  │                │      │                 │      │                  │       │
+│  │  Source Sync   │─────▶│  Build Engine   │─────▶│  Request Capture │       │
+│  │  (repo sync)   │      │  (AOSP build)   │      │  (libmock_pkcs11)│       │
+│  │                │      │                 │      │                  │       │
+│  └────────────────┘      └─────────────────┘      └────────┬─────────┘       │
+│                                                            │                 │
+│  ┌────────────────┐      ┌─────────────────┐      ┌────────▼─────────┐       │
+│  │                │      │                 │      │                  │       │
+│  │ State Manager  │◀────▶│ Orchestrator    │─────▶│ Request Generator│       │
+│  │ (checkpoints)  │      │ (9-stage FSM)   │      │ (JSON + crypto)  │       │
+│  │                │      │                 │      │                  │       │
+│  └────────────────┘      └─────────────────┘      └────────┬─────────┘       │
+│                                                            │                 │
+└────────────────────────────────────────────────────────────┼─────────────────┘
+                                                             │
+                         GitOps Queue (Git Repository)       │
+                    ┌────────────────────────────────────────▼─────────────────┐
+                    │  requests/                                              │
+                    │    └── &lt;batch-id&gt;/                                      │
+                    │         ├── metadata.json      (build info)             │
+                    │         ├── stage1-apk.json    (APK signing requests)   │
+                    │         ├── stage2-avb.json    (AVB signing requests)   │
+                    │         └── stage3-ota.json    (OTA signing requests)   │
+                    └──────────────────────────────────────────────────────────┘
+                                                             │
+┌────────────────────────────────────────────────────────────┼─────────────────┐
+│                             SIGNING ENVIRONMENT            │                 │
+│                                                            ▼                 │
+│  ┌────────────────┐      ┌─────────────────┐      ┌──────────────────┐       │
+│  │                │      │                 │      │                  │       │
+│  │ Queue Monitor  │─────▶│ Request Validator│─────▶│  HSM Interface   │       │
+│  │ (Git polling)  │      │ (crypto verify)  │      │  (PKCS#11 real) │       │
+│  │                │      │                 │      │                  │       │
+│  └────────────────┘      └─────────────────┘      └────────┬─────────┘       │
+│                                                            │                 │
+│  ┌────────────────┐      ┌─────────────────┐      ┌────────▼─────────┐       │
+│  │                │      │                 │◀─────│                  │       │
+│  │Response Writer │◀─────│ Sign Processor  │      │   YubiHSM2       │       │
+│  │ (Git commit)   │      │ (Python + HSM)  │      │   Hardware       │       │
+│  │                │      │                 │      │                  │       │
+│  └────────┬───────┘      └─────────────────┘      └──────────────────┘       │
+│           │                                                                  │
+└───────────┼──────────────────────────────────────────────────────────────────┘
+            │
+            ▼
+    responses/&lt;batch-id&gt;/
+      ├── stage1-apk-signed.json
+      ├── stage2-avb-signed.json
+      └── stage3-ota-signed.json
+      </pre>
+    </div>
+
+    <div class="callout callout-security">
+      <strong>Security Note:</strong> The GitOps queue acts as a security boundary. Build nodes can only write to requests/, 
+      sign nodes can only write to responses/. Neither can modify the other's data, preventing privilege escalation.
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Build Orchestrator: 9-Stage State Machine</h2>
+    <p>The build orchestrator implements a finite state machine (FSM) with atomic, resumable stages:</p>
+
+    <div class="code-block">
+      <pre><code>Stage 1: ENVIRONMENT_SETUP
+  → Validate system requirements
+  → Create directory structure
+  → Initialize state file
+  → Checkpoint: environment_ready
+
+Stage 2: SOURCE_SYNC
+  → Configure repo tool
+  → Sync AOSP sources (~100GB)
+  → Apply ROM-specific patches
+  → Checkpoint: source_synced
+
+Stage 3: VENDOR_EXTRACTION
+  → Download factory images
+  → Extract proprietary blobs
+  → Verify blob checksums
+  → Checkpoint: vendor_ready
+
+Stage 4: BUILD_CONFIG
+  → Set environment variables
+  → Configure build targets
+  → Set up ccache
+  → Checkpoint: build_configured
+
+Stage 5: COMPILATION
+  → Execute AOSP build with request capture
+  → libmock_pkcs11.so intercepts signing calls
+  → Saves requests, returns temp signatures
+  → Checkpoint: build_complete
+
+Stage 6: REQUEST_CAPTURE
+  → Aggregate captured signing requests
+  → Create request metadata
+  → Calculate artifact hashes
+  → Checkpoint: requests_generated
+
+Stage 7: QUEUE_SUBMISSION
+  → Commit to GitOps queue
+  → Sign commit with GPG
+  → Push to remote
+  → Checkpoint: requests_submitted
+
+Stage 8: WAIT_FOR_SIGNING
+  → Poll for responses
+  → Verify signatures
+  → Download signed artifacts
+  → Checkpoint: signing_complete
+
+Stage 9: FINALIZATION
+  → Assemble final ROM
+  → Generate checksums
+  → Create release metadata
+  → Checkpoint: build_finalized</code></pre>
+    </div>
+
+    <div class="callout callout-info">
+      <strong>Resumability Example:</strong> If compilation fails after 4 hours at 95% complete, running 
+      <code>bin/rombsr resume &lt;batch-id&gt;</code> will skip stages 1-4 and retry compilation from the exact failure point.
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Sign Orchestrator: Secure Processing Pipeline</h2>
+
+    <h3>Request Validation Pipeline</h3>
+    <div class="code-block">
+      <pre><code>1. Git Pull & Verification
+   - Pull new requests from queue
+   - Verify GPG signatures
+   - Check commit integrity
+
+2. Request Structure Validation
+   - Parse JSON requests
+   - Validate schema compliance
+   - Check required fields
+
+3. Security Policy Enforcement
+   - Verify requesting node authorization
+   - Check signing quotas/limits
+   - Validate artifact hashes
+
+4. HSM Authentication
+   - Load authentication key
+   - Establish HSM session
+   - Verify HSM health
+
+5. Cryptographic Operations
+   - Sign each artifact
+   - Generate signature metadata
+   - Create audit records
+
+6. Response Generation
+   - Package signatures
+   - Create response JSON
+   - Calculate response hashes
+
+7. Queue Commit
+   - Write to responses/
+   - Sign with GPG
+   - Push to remote</code></pre>
+    </div>
+
+    <h3>Multi-Stage Signing Process</h3>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>Stage 1: APK Signing</h4>
+        <p>Signs all system and vendor APKs using platform, media, shared, and release keys. Each APK's certificate chain is verified before and after signing.</p>
+      </div>
+      <div class="feature-card">
+        <h4>Stage 2: AVB Signing</h4>
+        <p>Signs boot images and generates vbmeta structures for Android Verified Boot. Creates chain of trust from bootloader to system.</p>
+      </div>
+      <div class="feature-card">
+        <h4>Stage 3: OTA Signing</h4>
+        <p>Signs OTA metadata and payload for secure updates. Ensures only authorized updates can be installed on devices.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>State Management: Transactional Integrity</h2>
+
+    <h3>State File Structure</h3>
+    <div class="code-block">
+      <pre><code>{
+  "batch_id": "grapheneos_shiba_20250130_141523",
+  "version": "1.0",
+  "rom": "grapheneos",
+  "device": "shiba",
+  "status": "in_progress",
+  "current_stage": "compilation",
+  "started_at": "2025-01-30T14:15:23Z",
+  "updated_at": "2025-01-30T18:45:12Z",
+  "checkpoints": {
+    "environment_ready": {
+      "completed": true,
+      "timestamp": "2025-01-30T14:15:30Z",
+      "duration_seconds": 7
+    },
+    "source_synced": {
+      "completed": true,
+      "timestamp": "2025-01-30T15:30:45Z",
+      "duration_seconds": 4515,
+      "metadata": {
+        "repo_size_gb": 127,
+        "manifest_revision": "android-14.0.0_r20"
+      }
+    },
+    "compilation": {
+      "completed": false,
+      "attempts": 2,
+      "last_error": "ninja: error: deps log too old",
+      "retry_after": "2025-01-30T19:00:00Z"
+    }
+  },
+  "artifacts": {
+    "target_files": "out/target/product/shiba/obj/PACKAGING/target_files.zip",
+    "ota_package": "out/target/product/shiba/shiba-ota.zip"
+  }
+}</code></pre>
+    </div>
+
+    <h3>Atomic State Transitions</h3>
+    <p>State updates use a write-rename pattern to ensure atomicity:</p>
+    <div class="code-block">
+      <pre><code># State update process
+1. Read current state into memory
+2. Update in-memory state
+3. Write to temporary file (.state.json.tmp)
+4. Sync to disk (fsync)
+5. Atomic rename to final location
+6. Remove temporary file on error</code></pre>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Request Capture: The Key Innovation</h2>
+    <p>ROMbsr's request capture mechanism solves a fundamental problem: how to build Android ROMs without exposing signing keys to build infrastructure.</p>
+
+    <h3>How Request Capture Works</h3>
+    <div class="code-block">
+      <pre><code>1. AOSP build tools (apksigner, signapk) attempt to sign
+   ↓
+2. libmock_pkcs11.so intercepts PKCS#11 calls
+   ↓
+3. For each signing operation:
+   - Captures the data to be signed
+   - Records the key identifier needed
+   - Saves request to batch file
+   - Returns temporary signature
+   ↓
+4. Build continues without hanging
+   ↓
+5. All requests aggregated for HSM signing</code></pre>
+    </div>
+
+    <div class="callout callout-info">
+      <strong>Critical Insight:</strong> Traditional builds fail if they can't sign. ROMbsr's request capture 
+      returns temporary signatures that allow the build to complete, while capturing what needs to be 
+      signed later. This decouples building from signing entirely.
+    </div>
+
+    <h3>Request Capture vs Traditional Signing</h3>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>Traditional AOSP Build</h4>
+        <ul>
+          <li>apksigner needs private key file</li>
+          <li>signapk reads keys from filesystem</li>
+          <li>Build fails without keys present</li>
+          <li>Keys exposed on build server</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <h4>ROMbsr Request Capture</h4>
+        <ul>
+          <li>libmock_pkcs11.so intercepts calls</li>
+          <li>No private keys needed during build</li>
+          <li>Build completes with temp signatures</li>
+          <li>Real signing happens on secure node</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>PKCS#11 Abstraction Layer</h2>
+    <p>ROMbsr's custom PKCS#11 implementation provides a unified interface for both development and production:</p>
+
+    <div class="architecture-diagram">
+      <pre>
+Application Layer (rombsr commands)
+        │
+        ▼
+┌─────────────────────────────────────┐
+│      PKCS#11 Abstraction Layer      │
+│                                     │
+│  ┌─────────────────┐  ┌───────────────┐  │
+│  │ Request Capture│  │  HSM Module   │  │
+│  │  (build nodes) │  │ (sign nodes)  │  │
+│  └──────┬──────┘  └───────┬───────┘  │
+│         │                 │         │
+│  ┌──────▼──────┐  ┌───────▼───────┐  │
+│  │   Memory     │  │   YubiHSM2    │  │
+│  │   Storage    │  │   Connector   │  │
+│  └─────────────┘  └───────────────┘  │
+└─────────────────────────────────────┘</pre>
+    </div>
+
+    <div class="callout callout-warning">
+      <strong>Build Safety:</strong> Request capture mode intercepts signing operations during build, saving requests 
+      while returning temporary signatures. This allows builds to complete without accessing production keys.
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>GitOps Queue: Immutable Audit Trail</h2>
+    
+    <h3>Queue Structure</h3>
+    <div class="code-block">
+      <pre><code>signing-queue/
+├── .git/                    # Git repository
+├── README.md                # Queue documentation
+├── requests/
+│   └── grapheneos_shiba_20250130_141523/
+│       ├── metadata.json    # Build information
+│       ├── stage1-apk-requests.json
+│       ├── stage2-avb-requests.json
+│       └── stage3-ota-requests.json
+└── responses/
+    └── grapheneos_shiba_20250130_141523/
+        ├── metadata.json    # Signing information
+        ├── stage1-apk-responses.json
+        ├── stage2-avb-responses.json
+        └── stage3-ota-responses.json</code></pre>
+    </div>
+
+    <h3>Cryptographic Verification</h3>
+    <p>Every queue operation is cryptographically secured:</p>
+    <ul>
+      <li><strong>GPG Signed Commits:</strong> All commits must be signed with authorized keys</li>
+      <li><strong>Hash Verification:</strong> Every artifact includes SHA-256 hashes</li>
+      <li><strong>Timestamp Validation:</strong> Prevents replay attacks</li>
+      <li><strong>Authorization Checks:</strong> Only authorized nodes can write to specific paths</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>Performance Optimizations</h2>
+    
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>Parallel Processing</h4>
+        <p>Multi-threaded repo sync, parallel compilation with <code>BUILD_JOBS=auto</code>, concurrent signing request generation. Optimized for modern multi-core systems.</p>
+      </div>
+      <div class="feature-card">
+        <h4>Intelligent Caching</h4>
+        <p>ccache for compilation (50GB+ recommended), source code caching between builds, vendor blob caching with checksums. Reduces build time by 40-60%.</p>
+      </div>
+      <div class="feature-card">
+        <h4>Network Optimization</h4>
+        <p>Local mirror support for AOSP sources, shallow clones where possible, resumable downloads with progress tracking. Handles unreliable connections gracefully.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Monitoring & Observability</h2>
+    
+    <h3>Prometheus Metrics</h3>
+    <div class="code-block">
+      <pre><code># Build metrics
+rombsr_build_duration_seconds{rom="grapheneos",device="shiba",stage="compilation"}
+rombsr_build_status{batch_id="...",status="success"}
+rombsr_disk_usage_bytes{path="/var/lib/rombsr/builds"}
+
+# Signing metrics
+rombsr_signing_requests_total{status="pending"}
+rombsr_signing_duration_seconds{operation="apk_sign"}
+rombsr_hsm_operations_total{type="sign",result="success"}
+
+# Queue metrics
+rombsr_queue_depth{type="requests"}
+rombsr_queue_age_seconds{batch_id="..."}
+
+# System metrics
+rombsr_state_corruption_total
+rombsr_checkpoint_recovery_total</code></pre>
+    </div>
+
+    <h3>Structured Logging</h3>
+    <p>All components use structured JSON logging for easy parsing and analysis:</p>
+    <div class="code-block">
+      <pre><code>{
+  "timestamp": "2025-01-30T18:45:12.234Z",
+  "level": "INFO",
+  "component": "build-orchestrator",
+  "batch_id": "grapheneos_shiba_20250130_141523",
+  "stage": "compilation",
+  "message": "Build completed successfully",
+  "duration_seconds": 14567,
+  "artifacts": ["system.img", "boot.img", "vendor.img"]
+}</code></pre>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 ROMbsr Project. Architecture designed for security, reliability, and transparency.</p>
+  </footer>
+
+  <!-- Theme Toggle Script -->
+  <script>
+    (function () {
+      const toggle = document.getElementById('themeToggle');
+      const icon = document.getElementById('themeIcon');
+      const storedTheme = localStorage.getItem('theme');
+      if (storedTheme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        icon.textContent = 'light_mode';
+      }
+      toggle.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        if (current === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'light');
+          localStorage.setItem('theme', 'light');
+          icon.textContent = 'light_mode';
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          localStorage.setItem('theme', 'dark');
+          icon.textContent = 'dark_mode';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
