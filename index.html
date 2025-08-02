@@ -24,17 +24,23 @@
       --accent-color: #03dac5;
       --error-color: #cf6679;
       --warning-color: #fbc02d;
+      --hero-bg: #0d0d0d;
+      --code-bg: #0a0a0a;
+      --code-border: rgba(138,180,248,0.3);
     }
     [data-theme="light"] {
       --bg-color: #ffffff;
-      --surface-color: #f5f5f5;
-      --surface-hover: #e0e0e0;
-      --text-color: #202124;
-      --text-secondary: #5f6368;
+      --surface-color: #e8e8e8;
+      --surface-hover: #d0d0d0;
+      --text-color: #1a1a1a;
+      --text-secondary: #4a4a4a;
       --primary-color: #1a73e8;
       --accent-color: #018786;
       --error-color: #d93025;
       --warning-color: #fbbc04;
+      --hero-bg: #f0f4f8;
+      --code-bg: #e1e8f0;
+      --code-border: rgba(26,115,232,0.4);
     }
     * {
       margin: 0;
@@ -59,6 +65,11 @@
       position: sticky;
       top: 0;
       z-index: 100;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+    [data-theme="light"] header {
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+      border-bottom: 1px solid rgba(0,0,0,0.15);
     }
     .logo {
       font-size: 1.5rem;
@@ -115,7 +126,8 @@
     .hero {
       text-align:center;
       padding:4rem 2rem;
-      background: linear-gradient(135deg, var(--surface-color) 0%, rgba(138,180,248,0.1) 100%);
+      background: var(--hero-bg);
+      border-bottom: 1px solid var(--surface-color);
     }
     .hero-grid {
       display:flex;
@@ -147,6 +159,10 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      filter: brightness(1.1);
+    }
+    [data-theme="light"] .hero h1 {
+      filter: brightness(0.9);
     }
     .tagline {
       font-size:1.2rem;
@@ -219,7 +235,12 @@
       padding: 2rem;
       border-radius: 12px;
       transition: all .3s;
-      border: 1px solid transparent;
+      border: 1px solid rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    [data-theme="light"] .feature-card {
+      border: 1px solid rgba(0,0,0,0.15);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     .feature-card:hover {
       transform: translateY(-4px);
@@ -242,11 +263,13 @@
 
     /* Architecture Diagram */
     .architecture-diagram {
-      background: var(--surface-color);
+      background: var(--code-bg);
       padding: 2rem;
       border-radius: 12px;
       margin: 2rem 0;
       overflow-x: auto;
+      border: 1px solid var(--code-border);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
     .architecture-diagram pre {
       font-family: monospace;
@@ -257,12 +280,13 @@
 
     /* Code Block */
     .code-block {
-      background: var(--surface-color);
-      border: 1px solid rgba(138,180,248,0.2);
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
       border-radius: 8px;
       padding: 1.5rem;
       margin: 1rem 0;
       overflow-x: auto;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
     .code-block pre {
       margin: 0;
