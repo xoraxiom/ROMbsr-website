@@ -367,7 +367,7 @@
 
   <section class="section">
     <h2>Production Setup Guide</h2>
-    
+
     <div class="steps">
       <div class="step">
         <h4>Infrastructure Preparation</h4>
@@ -508,21 +508,21 @@ sudo systemctl status rombsr-*</code></pre>
 
     <h3>Understanding SIGNING_MODE Configuration</h3>
     <div class="warning-box">
-      <strong>Important:</strong> SIGNING_MODE is not about development vs production environments. 
+      <strong>Important:</strong> SIGNING_MODE is not about development vs production environments.
       Both modes are production features that work together:
     </div>
-    
+
     <div class="feature-grid">
       <div class="feature-card">
         <h4>SIGNING_MODE=mock (Build Nodes)</h4>
-        <p>Enables request capture via libmock_pkcs11.so. This intercepts signing operations during build, 
-        saves the requests, and returns temporary signatures so the build can complete. This is NOT a test mode - 
+        <p>Enables request capture via libmock_pkcs11.so. This intercepts signing operations during build,
+        saves the requests, and returns temporary signatures so the build can complete. This is NOT a test mode -
         it's how production builds capture what needs to be signed.</p>
       </div>
       <div class="feature-card">
         <h4>SIGNING_MODE=hsm (Sign Nodes)</h4>
-        <p>Uses real HSM for processing captured signing requests. The sign orchestrator reads requests from 
-        the GitOps queue, applies real signatures using the YubiHSM2, and writes responses back. This completes 
+        <p>Uses real HSM for processing captured signing requests. The sign orchestrator reads requests from
+        the GitOps queue, applies real signatures using the YubiHSM2, and writes responses back. This completes
         the signing process started by the build nodes.</p>
       </div>
     </div>
@@ -530,16 +530,16 @@ sudo systemctl status rombsr-*</code></pre>
 
   <section class="section">
     <h2>High Availability Configuration</h2>
-    
+
     <h3>Active/Passive Sign Nodes</h3>
     <p>For production environments requiring high availability:</p>
-    
+
     <div class="code-block">
       <pre><code># Primary sign node
 SIGN_NODE_ROLE=primary
 SIGN_NODE_PRIORITY=100
 
-# Secondary sign node  
+# Secondary sign node
 SIGN_NODE_ROLE=secondary
 SIGN_NODE_PRIORITY=50
 
@@ -554,7 +554,7 @@ HEALTH_CHECK_INTERVAL=30</code></pre>
     </div>
 
     <div class="warning-box">
-      <strong>Important:</strong> Only one sign node should be active at a time to prevent race conditions. 
+      <strong>Important:</strong> Only one sign node should be active at a time to prevent race conditions.
       The distributed lock ensures mutual exclusion even if both nodes are running.
     </div>
 
@@ -577,7 +577,7 @@ HEALTH_CHECK_INTERVAL=30</code></pre>
 
   <section class="section">
     <h2>Monitoring & Alerting</h2>
-    
+
     <h3>Prometheus Configuration</h3>
     <div class="code-block">
       <pre><code># prometheus.yml
@@ -588,7 +588,7 @@ scrape_configs:
   - job_name: 'rombsr-build'
     static_configs:
       - targets: ['build1:9090', 'build2:9090', 'build3:9090']
-    
+
   - job_name: 'rombsr-sign'
     static_configs:
       - targets: ['sign1:9090', 'sign2:9090']
@@ -610,19 +610,19 @@ groups:
         expr: increase(rombsr_build_failures_total[1h]) > 0
         annotations:
           summary: "Build failed for {{ $labels.rom }}/{{ $labels.device }}"
-      
+
       - alert: SigningQueueBacklog
         expr: rombsr_signing_requests_pending > 50
         for: 10m
         annotations:
           summary: "Signing queue backlog: {{ $value }} requests pending"
-      
+
       - alert: HSMError
         expr: increase(rombsr_hsm_errors_total[5m]) > 0
         annotations:
           summary: "HSM errors detected"
           severity: critical
-      
+
       - alert: DiskSpaceLow
         expr: rombsr_disk_usage_percent > 85
         annotations:
@@ -642,13 +642,13 @@ groups:
 
   <section class="section">
     <h2>Operational Procedures</h2>
-    
+
     <h3>Daily Operations Checklist</h3>
     <div class="code-block">
       <pre><code>Morning (9 AM):
 □ Check overnight build status
   $ rombsr status --since yesterday
-  
+
 □ Review any alerts from monitoring
   $ journalctl -u rombsr-* --since "8 hours ago" | grep ERROR
 
@@ -704,7 +704,7 @@ End of Day (5 PM):
 
   <section class="section">
     <h2>Performance Tuning</h2>
-    
+
     <h3>Build Performance Optimization</h3>
     <table>
       <thead>
@@ -749,7 +749,7 @@ End of Day (5 PM):
 /var/lib/rombsr/builds  - NVMe SSD (1TB+)
 /var/lib/rombsr/cache   - NVMe SSD (200GB)
 
-# Standard SSD for sources  
+# Standard SSD for sources
 /var/lib/rombsr/sources - SATA SSD (500GB)
 
 # tmpfs for maximum speed (requires 64GB+ RAM)
@@ -763,7 +763,7 @@ tune2fs -O ^has_journal /dev/nvme0n1p1  # Disable journal (risky!)</code></pre>
 
   <section class="section">
     <h2>Troubleshooting Guide</h2>
-    
+
     <h3>Common Issues and Solutions</h3>
     <div class="feature-card">
       <h4>Build Keeps Failing at Same Stage</h4>
@@ -825,7 +825,7 @@ rombsr sign --once --verbose</code></pre>
 
   <section class="section">
     <h2>Disaster Recovery</h2>
-    
+
     <h3>Backup Strategy</h3>
     <div class="code-block">
       <pre><code>#!/bin/bash

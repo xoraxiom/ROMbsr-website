@@ -352,7 +352,7 @@
 
   <section class="section">
     <h2>System Architecture Overview</h2>
-    
+
     <div class="architecture-diagram">
       <pre>
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -376,23 +376,23 @@
                                                              │
                          GitOps Queue (Git Repository)       │
                     ┌────────────────────────────────────────▼─────────────────┐
-                    │  requests/                                              │
-                    │    └── &lt;batch-id&gt;/                                      │
-                    │         ├── metadata.json      (build info)             │
-                    │         ├── stage1-apk.json    (APK signing requests)   │
-                    │         ├── stage2-avb.json    (AVB signing requests)   │
-                    │         └── stage3-ota.json    (OTA signing requests)   │
+                    │  requests/                                               │
+                    │    └── &lt;batch-id&gt;/                                 │
+                    │         ├── metadata.json      (build info)              │
+                    │         ├── stage1-apk.json    (APK signing requests)    │
+                    │         ├── stage2-avb.json    (AVB signing requests)    │
+                    │         └── stage3-ota.json    (OTA signing requests)    │
                     └──────────────────────────────────────────────────────────┘
                                                              │
 ┌────────────────────────────────────────────────────────────┼─────────────────┐
 │                             SIGNING ENVIRONMENT            │                 │
 │                                                            ▼                 │
-│  ┌────────────────┐      ┌─────────────────┐      ┌──────────────────┐       │
-│  │                │      │                 │      │                  │       │
-│  │ Queue Monitor  │─────▶│ Request Validator│─────▶│  HSM Interface   │       │
-│  │ (Git polling)  │      │ (crypto verify)  │      │  (PKCS#11 real) │       │
-│  │                │      │                 │      │                  │       │
-│  └────────────────┘      └─────────────────┘      └────────┬─────────┘       │
+│  ┌────────────────┐      ┌──────────────────┐     ┌──────────────────┐       │
+│  │                │      │                  │     │                  │       │
+│  │ Queue Monitor  │─────▶│ Request Validator│────▶│  HSM Interface   │       │
+│  │ (Git polling)  │      │ (crypto verify)  │     │  (PKCS#11 real)  │       │
+│  │                │      │                  │     │                  │       │
+│  └────────────────┘      └──────────────────┘     └────────┬─────────┘       │
 │                                                            │                 │
 │  ┌────────────────┐      ┌─────────────────┐      ┌────────▼─────────┐       │
 │  │                │      │                 │◀─────│                  │       │
@@ -412,7 +412,7 @@
     </div>
 
     <div class="callout callout-security">
-      <strong>Security Note:</strong> The GitOps queue acts as a security boundary. Build nodes can only write to requests/, 
+      <strong>Security Note:</strong> The GitOps queue acts as a security boundary. Build nodes can only write to requests/,
       sign nodes can only write to responses/. Neither can modify the other's data, preventing privilege escalation.
     </div>
   </section>
@@ -478,7 +478,7 @@ Stage 9: FINALIZATION
     </div>
 
     <div class="callout callout-info">
-      <strong>Resumability Example:</strong> If compilation fails after 4 hours at 95% complete, running 
+      <strong>Resumability Example:</strong> If compilation fails after 4 hours at 95% complete, running
       <code>bin/rombsr resume &lt;batch-id&gt;</code> will skip stages 1-4 and retry compilation from the exact failure point.
     </div>
   </section>
@@ -619,8 +619,8 @@ Stage 9: FINALIZATION
     </div>
 
     <div class="callout callout-info">
-      <strong>Critical Insight:</strong> Traditional builds fail if they can't sign. ROMbsr's request capture 
-      returns temporary signatures that allow the build to complete, while capturing what needs to be 
+      <strong>Critical Insight:</strong> Traditional builds fail if they can't sign. ROMbsr's request capture
+      returns temporary signatures that allow the build to complete, while capturing what needs to be
       signed later. This decouples building from signing entirely.
     </div>
 
@@ -656,30 +656,31 @@ Stage 9: FINALIZATION
 Application Layer (rombsr commands)
         │
         ▼
-┌─────────────────────────────────────┐
-│      PKCS#11 Abstraction Layer      │
-│                                     │
-│  ┌─────────────────┐  ┌───────────────┐  │
-│  │ Request Capture│  │  HSM Module   │  │
-│  │  (build nodes) │  │ (sign nodes)  │  │
-│  └──────┬──────┘  └───────┬───────┘  │
-│         │                 │         │
-│  ┌──────▼──────┐  ┌───────▼───────┐  │
-│  │   Memory     │  │   YubiHSM2    │  │
-│  │   Storage    │  │   Connector   │  │
-│  └─────────────┘  └───────────────┘  │
-└─────────────────────────────────────┘</pre>
+┌─────────────────────────────────────────┐
+│      PKCS#11 Abstraction Layer          │
+│                                         │
+│  ┌─────────────────┐ ┌───────────────┐  │
+│  │ Request Capture │ │  HSM Module   │  │
+│  │  (build nodes)  │ │ (sign nodes)  │  │
+│  └──────┬──────────┘ └───────┬───────┘  │
+│         │                    │          │
+│  ┌──────▼──────┐    ┌────────▼──────┐   │
+│  │   Memory    │    │   YubiHSM2    │   │
+│  │   Storage   │    │   Connector   │   │
+│  └─────────────┘    └───────────────┘   │
+└─────────────────────────────────────────┘
+      </pre>
     </div>
 
     <div class="callout callout-warning">
-      <strong>Build Safety:</strong> Request capture mode intercepts signing operations during build, saving requests 
+      <strong>Build Safety:</strong> Request capture mode intercepts signing operations during build, saving requests
       while returning temporary signatures. This allows builds to complete without accessing production keys.
     </div>
   </section>
 
   <section class="section">
     <h2>GitOps Queue: Immutable Audit Trail</h2>
-    
+
     <h3>Queue Structure</h3>
     <div class="code-block">
       <pre><code>signing-queue/
@@ -711,7 +712,7 @@ Application Layer (rombsr commands)
 
   <section class="section">
     <h2>Performance Optimizations</h2>
-    
+
     <div class="feature-grid">
       <div class="feature-card">
         <h4>Parallel Processing</h4>
@@ -730,7 +731,7 @@ Application Layer (rombsr commands)
 
   <section class="section">
     <h2>Monitoring & Observability</h2>
-    
+
     <h3>Prometheus Metrics</h3>
     <div class="code-block">
       <pre><code># Build metrics

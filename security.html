@@ -394,38 +394,38 @@
 
   <section class="section">
     <h2>Request Capture: Production Security Feature</h2>
-    <p>A common misconception is that ROMbsr's request capture (libmock_pkcs11.so) is a development or testing feature. 
+    <p>A common misconception is that ROMbsr's request capture (libmock_pkcs11.so) is a development or testing feature.
     In reality, it's a critical production security component that enables the entire zero-trust architecture.</p>
 
     <h3>Why Request Capture is Essential for Security</h3>
     <div class="feature-grid">
       <div class="feature-card">
         <h4>Enables Key Isolation</h4>
-        <p>By capturing signing requests instead of performing signing, build infrastructure never needs access to private keys. 
+        <p>By capturing signing requests instead of performing signing, build infrastructure never needs access to private keys.
         This is not a workaround - it's the fundamental security design.</p>
       </div>
       <div class="feature-card">
         <h4>Prevents Key Exfiltration</h4>
-        <p>Even if attackers compromise the build server and modify libmock_pkcs11.so, they cannot extract keys that were never present. 
+        <p>Even if attackers compromise the build server and modify libmock_pkcs11.so, they cannot extract keys that were never present.
         The worst they can do is corrupt the signing requests.</p>
       </div>
       <div class="feature-card">
         <h4>Enables Distributed Builds</h4>
-        <p>Multiple build nodes can operate in parallel without any access to signing keys. 
+        <p>Multiple build nodes can operate in parallel without any access to signing keys.
         All captured requests are processed centrally by the secure signing infrastructure.</p>
       </div>
     </div>
 
     <div class="callout callout-security">
-      <strong>Security Architecture:</strong> Request capture is not "mock" signing - it's deferred signing. 
-      The build process captures what needs to be signed, and the signing process applies real signatures later. 
+      <strong>Security Architecture:</strong> Request capture is not "mock" signing - it's deferred signing.
+      The build process captures what needs to be signed, and the signing process applies real signatures later.
       This separation is what makes ROMbsr fundamentally more secure than traditional approaches.
     </div>
   </section>
 
   <section class="section">
     <h2>Hardware Security Module (HSM) Integration</h2>
-    
+
     <h3>YubiHSM2 Security Features</h3>
     <div class="feature-grid">
       <div class="feature-card">
@@ -477,7 +477,7 @@ Provisioning complete!</code></pre>
     <div class="code-block">
       <pre><code># Android Signing Keys in HSM
 platform    - Signs core system apps
-media       - Signs media/download providers  
+media       - Signs media/download providers
 shared      - Signs launcher/contacts
 networkstack - Signs connectivity components
 sdk_sandbox  - Signs sandboxed SDK runtime
@@ -497,7 +497,7 @@ ota_key     - Signs OTA metadata and payloads
 
   <section class="section">
     <h2>Cryptographic Verification Chain</h2>
-    
+
     <h3>End-to-End Verification</h3>
     <p>Every artifact goes through multiple layers of cryptographic verification:</p>
 
@@ -562,7 +562,7 @@ ota_key     - Signs OTA metadata and payloads
 
   <section class="section">
     <h2>GitOps Security Model</h2>
-    
+
     <h3>Why Git for Security Queue?</h3>
     <div class="feature-grid">
       <div class="feature-card">
@@ -605,7 +605,7 @@ ota_key     - Signs OTA metadata and payloads
 
   <section class="section">
     <h2>Security Best Practices</h2>
-    
+
     <h3>Operational Security</h3>
     <div class="security-grid">
       <div class="security-item">
@@ -638,7 +638,7 @@ ota_key     - Signs OTA metadata and payloads
   ✓ Access logs for physical entry
   ✓ Security cameras on HSM location
 
-□ Network Security  
+□ Network Security
   ✓ Sign nodes on isolated network segment
   ✓ Firewall rules limit HSM access
   ✓ No internet access from sign nodes
@@ -662,7 +662,7 @@ ota_key     - Signs OTA metadata and payloads
 
   <section class="section">
     <h2>Compliance & Standards</h2>
-    
+
     <h3>Industry Standards Alignment</h3>
     <div class="feature-grid">
       <div class="feature-card">
@@ -691,7 +691,7 @@ ota_key     - Signs OTA metadata and payloads
 
   <section class="section">
     <h2>Incident Response</h2>
-    
+
     <h3>Security Incident Playbooks</h3>
     <div class="threat-card">
       <h4>Suspected Key Compromise</h4>
